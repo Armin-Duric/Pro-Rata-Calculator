@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Illinois Medical Lien Pro Rata Calculator (770 ILCS 23)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-100 text-slate-800 p-4 md:p-8 min-h-screen">
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- Header -->
+      <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900">
+              Illinois Medical Lien Calculator
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">
+              Pursuant to the Illinois Health Care Services Lien Act (770 ILCS
+              23/10)
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              id="rule-badge"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"
+            >
+              40% Aggregate Cap Rule
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Workspace Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Case Parameters & ION Block -->
+        <div class="space-y-6 lg:col-span-1">
+          <!-- Case Details -->
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4"
+          >
+            <h2
+              class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-2"
+            >
+              Case Info
+            </h2>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >Patient Name</label
+              >
+              <input
+                type="text"
+                id="patient-name"
+                value="John Doe"
+                oninput="calculate()"
+                placeholder="e.g. John Doe"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >Attorney / Case Reference</label
+              >
+              <input
+                type="text"
+                id="case-name"
+                value="Malman Law"
+                oninput="calculate()"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >Gross Settlement Amount ($)</label
+              >
+              <div class="relative">
+                <span
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold"
+                  >$</span
+                >
+                <input
+                  type="number"
+                  id="settlement"
+                  value="200000"
+                  step="100"
+                  min="0"
+                  oninput="calculate()"
+                  class="w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-lg text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <!-- Save & CSV Controls -->
+            <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+              <button
+                onclick="saveCurrentCase()"
+                class="py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
+                </svg>
+                Save Case
+              </button>
+              <button
+                onclick="exportToCSV()"
+                class="py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                Export CSV
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <label
+                class="w-full cursor-pointer py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors text-center block"
+              >
+                Import Cases from CSV
+                <input
+                  type="file"
+                  id="csv-file-input"
+                  accept=".csv"
+                  onchange="importFromCSV(event)"
+                  class="hidden"
+                />
+              </label>
+            </div>
+          </div>
+
+          <!-- ION Specific Form (Dual PRO / FAC) -->
+          <div
+            id="ion-config-box"
+            class="bg-amber-50/60 p-5 rounded-xl shadow-sm border border-amber-200 space-y-3"
+          >
+            <div
+              class="flex justify-between items-center border-b border-amber-200/80 pb-2"
+            >
+              <h2
+                class="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1"
+              >
+                <svg
+                  class="w-4 h-4 text-amber-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                ION Header Settings
+              </h2>
+              <input
+                type="checkbox"
+                id="ion-enable-toggle"
+                checked
+                onchange="toggleIONBox(this.checked)"
+                class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4"
+              />
+            </div>
+
+            <div id="ion-fields-container" class="space-y-2 text-xs">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-0.5"
+                    >ION PRO Balance ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-balance"
+                    value="8423.62"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-0.5"
+                    >ION FAC Balance ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-balance"
+                    value="25500.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-0.5"
+                    >ION Payments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-payments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-0.5"
+                    >ION Adjustments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-adjustments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-0.5"
+                    >ION PRO Proposal ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-proposal"
+                    value="6740.84"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-bold text-amber-800"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-0.5"
+                    >ION FAC Proposal ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-proposal"
+                    value="18000.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-bold text-amber-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-0.5"
+                  >Services / Notes</label
+                >
+                <input
+                  type="text"
+                  id="ion-services"
+                  value="1 epidural, 3 nerve blocks, 6 OV, 1 tox"
+                  oninput="calculate()"
+                  class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved Cases Manager -->
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3"
+          >
+            <div class="flex justify-between items-center">
+              <h2
+                class="text-sm font-bold uppercase tracking-wider text-slate-500"
+              >
+                Saved Cases
+              </h2>
+              <span
+                id="saved-count"
+                class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold"
+                >0</span
+              >
+            </div>
+
+            <input
+              type="text"
+              id="search-saved"
+              oninput="renderSavedCasesList()"
+              placeholder="Search cases..."
+              class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+
+            <div
+              id="saved-cases-list"
+              class="max-h-36 overflow-y-auto divide-y divide-slate-100 text-xs"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Medical Liens Table & Email Format -->
+        <div class="space-y-6 lg:col-span-2">
+          <!-- Medical Lien Inputs -->
+          <div
+            class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4"
+          >
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3"
+            >
+              <div>
+                <h2 class="text-base font-bold text-slate-900">
+                  Medical Liens & Negotiation Status
+                </h2>
+                <p class="text-xs text-slate-500">
+                  Check
+                  <span class="font-semibold text-amber-700">"Target"</span> to
+                  highlight the provider you are generating Pro Rata for.
+                </p>
+              </div>
+              <button
+                onclick="addLienRow()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Provider
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table
+                class="w-full text-left border-collapse border border-slate-200"
+              >
+                <thead>
+                  <tr
+                    class="border-b border-slate-200 text-[11px] uppercase text-slate-600 font-bold bg-slate-100"
+                  >
+                    <th
+                      class="py-2.5 px-2 w-12 text-center border-r border-slate-200"
+                    >
+                      Target
+                    </th>
+                    <th class="py-2.5 px-2 border-r border-slate-200">
+                      Provider Name
+                    </th>
+                    <th class="py-2.5 px-2 w-32 border-r border-slate-200">
+                      Category
+                    </th>
+                    <th class="py-2.5 px-2 w-28 border-r border-slate-200">
+                      AR Balance ($)
+                    </th>
+                    <th class="py-2.5 px-2 w-32 border-r border-slate-200">
+                      Status
+                    </th>
+                    <th class="py-2.5 px-2 w-8 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody id="lien-rows" class="divide-y divide-slate-200 text-sm">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Email Proposal Output -->
+          <div
+            class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4"
+          >
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4"
+            >
+              <div>
+                <h2 class="text-base font-bold text-slate-900">
+                  Email Proposal Output
+                </h2>
+                <p class="text-xs text-slate-500" id="calculation-status">
+                  Formatted for direct copy into email proposals.
+                </p>
+              </div>
+
+              <button
+                onclick="copyTableForEmail()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H8m0 0a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 001-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                  />
+                </svg>
+                <span id="copy-btn-text">Copy Proposal for Email</span>
+              </button>
+            </div>
+
+            <!-- Email Preview Output Box -->
+            <div
+              class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs font-sans space-y-4 overflow-x-auto"
+              id="email-preview-container"
+            >
+              <!-- Dynamic Content Injected Here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <datalist id="provider-options"></datalist>
+
+    <script>
+      const DEFAULT_PROVIDERS = [
+        { name: "IL ORTHO NETWORK-PRO", category: "professional" },
+        { name: "MW SPEC PHARMACY", category: "professional" },
+        { name: "ATI", category: "professional" },
+        { name: "SIMONMED", category: "professional" },
+        { name: "METRO ANESTHESIA", category: "professional" },
+        { name: "HOPE NEURO", category: "professional" },
+        { name: "ELITE REHAB", category: "professional" },
+        { name: "WINDY CITY NEURO", category: "professional" },
+        { name: "IL ORTHO NETWORK-FAC", category: "provider" },
+        { name: "OGALLA HOSP", category: "provider" },
+      ];
+
+      let providerDirectory =
+        JSON.parse(localStorage.getItem("il_provider_directory")) ||
+        DEFAULT_PROVIDERS;
+      let savedCases = JSON.parse(localStorage.getItem("il_saved_cases")) || {};
+
+      let liens = [
+        {
+          id: 1,
+          name: "IL ORTHO NETWORK-PRO",
+          category: "professional",
+          amount: 8423.62,
+          status: "Offer Sent",
+          isTarget: true,
+        },
+        {
+          id: 2,
+          name: "MW SPEC PHARMACY",
+          category: "professional",
+          amount: 1629.23,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 3,
+          name: "ATI",
+          category: "professional",
+          amount: 8096.34,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 4,
+          name: "SIMONMED",
+          category: "professional",
+          amount: 7182.25,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 5,
+          name: "METRO ANESTHESIA",
+          category: "professional",
+          amount: 6406.64,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 6,
+          name: "HOPE NEURO",
+          category: "professional",
+          amount: 3412.5,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 7,
+          name: "ELITE REHAB",
+          category: "professional",
+          amount: 5335.0,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 8,
+          name: "WINDY CITY NEURO",
+          category: "professional",
+          amount: 9500.0,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+        {
+          id: 9,
+          name: "IL ORTHO NETWORK-FAC",
+          category: "provider",
+          amount: 25500.0,
+          status: "Offer Sent",
+          isTarget: true,
+        },
+        {
+          id: 10,
+          name: "OGALLA HOSP",
+          category: "provider",
+          amount: 31650.0,
+          status: "Offer Sent",
+          isTarget: false,
+        },
+      ];
+
+      let ionEnabled = true;
+
+      function init() {
+        updateProviderDatalist();
+        renderSavedCasesList();
+        renderInputs();
+        calculate();
+      }
+
+      function updateProviderDatalist() {
+        const datalist = document.getElementById("provider-options");
+        datalist.innerHTML = "";
+        providerDirectory.forEach((p) => {
+          const option = document.createElement("option");
+          option.value = p.name;
+          datalist.appendChild(option);
+        });
+        localStorage.setItem(
+          "il_provider_directory",
+          JSON.stringify(providerDirectory),
+        );
+      }
+
+      function toggleIONBox(enabled) {
+        ionEnabled = enabled;
+        const container = document.getElementById("ion-fields-container");
+        if (enabled) {
+          container.classList.remove("opacity-40", "pointer-events-none");
+        } else {
+          container.classList.add("opacity-40", "pointer-events-none");
+        }
+        calculate();
+      }
+
+      function renderInputs() {
+        const tbody = document.getElementById("lien-rows");
+        tbody.innerHTML = "";
+
+        liens.forEach((lien, index) => {
+          const tr = document.createElement("tr");
+          tr.className = lien.isTarget
+            ? "bg-amber-50/80 font-medium"
+            : "hover:bg-slate-50";
+          tr.innerHTML = `
+          <td class="py-2 px-2 text-center border-r border-slate-200">
+            <input type="checkbox" ${lien.isTarget ? "checked" : ""} 
+              onchange="toggleTargetLien(${index}, this.checked)"
+              title="Check to mark as target provider for Pro Rata"
+              class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
+          </td>
+          <td class="py-2 px-2 border-r border-slate-200">
+            <input type="text" list="provider-options" value="${lien.name}" 
+              onchange="handleProviderInput(${index}, this.value)"
+              placeholder="Provider name..."
+              class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </td>
+          <td class="py-2 px-2 border-r border-slate-200">
+            <select onchange="updateLienField(${index}, 'category', this.value)"
+              class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <option value="professional" ${lien.category === "professional" ? "selected" : ""}>PRO (Clinics/Doctors)</option>
+              <option value="provider" ${lien.category === "provider" ? "selected" : ""}>FAC (Hospitals/EMS)</option>
+            </select>
+          </td>
+          <td class="py-2 px-2 border-r border-slate-200">
+            <input type="number" value="${lien.amount}" step="0.01" min="0" oninput="updateLienField(${index}, 'amount', parseFloat(this.value) || 0)"
+              class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </td>
+          <td class="py-2 px-2 border-r border-slate-200">
+            <select onchange="updateLienField(${index}, 'status', this.value)"
+              class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusClass(lien.status)}">
+              <option value="Pending Proposal" ${lien.status === "Pending Proposal" ? "selected" : ""}>Pending Proposal</option>
+              <option value="Offer Sent" ${lien.status === "Offer Sent" ? "selected" : ""}>Offer Sent</option>
+              <option value="Doctor Accepted" ${lien.status === "Doctor Accepted" ? "selected" : ""}>Doctor Accepted</option>
+              <option value="Counter-Offer Received" ${lien.status === "Counter-Offer Received" ? "selected" : ""}>Counter-Offer</option>
+              <option value="Rejected" ${lien.status === "Rejected" ? "selected" : ""}>Rejected</option>
+            </select>
+          </td>
+          <td class="py-2 px-2 text-center">
+            <button onclick="removeLien(${index})" class="text-slate-400 hover:text-red-600 transition-colors p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function toggleTargetLien(index, checked) {
+        liens[index].isTarget = checked;
+        renderInputs();
+        calculate();
+      }
+
+      function getStatusClass(status) {
+        switch (status) {
+          case "Doctor Accepted":
+            return "bg-emerald-50 text-emerald-700 border-emerald-300";
+          case "Counter-Offer Received":
+            return "bg-amber-50 text-amber-700 border-amber-300";
+          case "Rejected":
+            return "bg-red-50 text-red-700 border-red-300";
+          case "Offer Sent":
+            return "bg-blue-50 text-blue-700 border-blue-300";
+          default:
+            return "bg-slate-50 text-slate-600 border-slate-300";
+        }
+      }
+
+      function handleProviderInput(index, val) {
+        liens[index].name = val;
+        const upperName = val.toUpperCase();
+
+        if (upperName.includes("ION") || upperName.includes("ORTHO")) {
+          document.getElementById("ion-enable-toggle").checked = true;
+          toggleIONBox(true);
+        }
+
+        const matched = providerDirectory.find(
+          (p) => p.name.toLowerCase() === val.trim().toLowerCase(),
+        );
+        if (matched) liens[index].category = matched.category;
+        else if (val.trim().length > 3) {
+          providerDirectory.push({
+            name: val.trim(),
+            category: liens[index].category,
+          });
+          updateProviderDatalist();
+        }
+        renderInputs();
+        calculate();
+      }
+
+      function updateLienField(index, field, val) {
+        liens[index][field] = val;
+        if (field === "category" || field === "status") renderInputs();
+        calculate();
+      }
+
+      function addLienRow() {
+        liens.push({
+          id: Date.now(),
+          name: "",
+          category: "professional",
+          amount: 0,
+          status: "Pending Proposal",
+          isTarget: false,
+        });
+        renderInputs();
+        calculate();
+      }
+
+      function removeLien(index) {
+        liens.splice(index, 1);
+        renderInputs();
+        calculate();
+      }
+
+      function formatUSD(num) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(num || 0);
+      }
+
+      function calculate() {
+        const settlement =
+          parseFloat(document.getElementById("settlement").value) || 0;
+
+        let totalProBills = 0;
+        let totalFacBills = 0;
+
+        liens.forEach((l) => {
+          if (l.category === "professional") totalProBills += l.amount || 0;
+          else totalFacBills += l.amount || 0;
+        });
+
+        const grandTotalBills = totalProBills + totalFacBills;
+
+        let proPool = 0;
+        let facPool = 0;
+
+        const hasPro = totalProBills > 0;
+        const hasFac = totalFacBills > 0;
+
+        if (hasPro && !hasFac) {
+          proPool = Math.min(totalProBills, settlement * (1 / 3));
+          facPool = 0;
+        } else if (!hasPro && hasFac) {
+          facPool = Math.min(totalFacBills, settlement * (1 / 3));
+          proPool = 0;
+        } else {
+          const cap40 = settlement * 0.4;
+          const initial20Cap = settlement * 0.2;
+
+          if (grandTotalBills <= cap40) {
+            proPool = totalProBills;
+            facPool = totalFacBills;
+          } else {
+            let proCap = initial20Cap;
+            let facCap = initial20Cap;
+
+            if (totalProBills < initial20Cap) {
+              facCap += initial20Cap - totalProBills;
+              proCap = totalProBills;
+            } else if (totalFacBills < initial20Cap) {
+              proCap += initial20Cap - totalFacBills;
+              facCap = totalFacBills;
+            }
+
+            proPool = Math.min(totalProBills, proCap);
+            facPool = Math.min(totalFacBills, facCap);
+          }
+        }
+
+        document.getElementById("calculation-status").innerText =
+          `Settlement: ${formatUSD(settlement)} | Total AR: ${formatUSD(grandTotalBills)} | Total Offer: ${formatUSD(proPool + facPool)}`;
+
+        renderEmailOutput(
+          settlement,
+          totalProBills,
+          totalFacBills,
+          grandTotalBills,
+          proPool,
+          facPool,
+        );
+      }
+
+      function renderEmailOutput(
+        settlement,
+        totalProBills,
+        totalFacBills,
+        grandTotalBills,
+        proPool,
+        facPool,
+      ) {
+        const container = document.getElementById("email-preview-container");
+        const patientName = document.getElementById("patient-name").value;
+        const caseName = document.getElementById("case-name").value;
+
+        // 1. ION Header Block (Includes Patient Name & Case Reference)
+        let ionHeaderHTML = "";
+        if (
+          ionEnabled &&
+          document.getElementById("ion-enable-toggle").checked
+        ) {
+          const proBal =
+            parseFloat(document.getElementById("ion-pro-balance").value) || 0;
+          const facBal =
+            parseFloat(document.getElementById("ion-fac-balance").value) || 0;
+          const payments =
+            parseFloat(document.getElementById("ion-payments").value) || 0;
+          const adj =
+            parseFloat(document.getElementById("ion-adjustments").value) || 0;
+          const proProposal =
+            parseFloat(document.getElementById("ion-pro-proposal").value) || 0;
+          const facProposal =
+            parseFloat(document.getElementById("ion-fac-proposal").value) || 0;
+          const services = document.getElementById("ion-services").value;
+
+          ionHeaderHTML = `
+          <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
+            ${patientName ? `<div><strong>Patient: ${patientName}</strong></div>` : ""}
+            <div><strong>Case: ${caseName}</strong></div>
+            <div>ION PRO Balance: ${formatUSD(proBal)}</div>
+            <div>ION FAC Balance: ${formatUSD(facBal)}</div>
+            <div>ION Payments: ${formatUSD(payments)}</div>
+            <div>ION Adjustments: ${formatUSD(adj)}</div>
+            <div>ION PRO Proposal: ${formatUSD(proProposal)}</div>
+            <div>ION FAC Proposal: ${formatUSD(facProposal)}</div>
+            <div>${services}</div>
+            <div style="margin-top: 4px;">
+              *Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. Offers are pro rata.
+            </div>
+          </div>
+        `;
+        }
+
+        // 2. Summary Table
+        const summaryTableHTML = `
+        <table style="border-collapse: collapse; width: 220px; font-size: 11px; font-family: Arial, sans-serif; margin-bottom: 12px; border: 1px solid #000;">
+          <tr>
+            <td style="padding: 2px 6px; font-weight: bold; border: 1px solid #000;">TOTAL SETTLMENT</td>
+            <td style="padding: 2px 6px; font-weight: bold; text-align: right; border: 1px solid #000; background-color: #dbeafe;">${settlement.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <td style="padding: 2px 6px; border: 1px solid #000;">Amount to PRO</td>
+            <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${proPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <td style="padding: 2px 6px; border: 1px solid #000;">Amount to FAC</td>
+            <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${facPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+        </table>
+      `;
+
+        // 3. Compact Main Table
+        const proItems = liens.filter((l) => l.category === "professional");
+        const facItems = liens.filter((l) => l.category === "provider");
+        const maxRows = Math.max(proItems.length, facItems.length);
+
+        let rowsHTML = "";
+        let proTotalOffered = 0;
+        let facTotalOffered = 0;
+
+        for (let i = 0; i < maxRows; i++) {
+          const pro = proItems[i];
+          const fac = facItems[i];
+
+          // PRO Cell
+          let proCellHTML = `<td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td>`;
+          if (pro) {
+            const share = totalProBills > 0 ? pro.amount / totalProBills : 0;
+            const offer = share * proPool;
+            proTotalOffered += offer;
+            const bgStyle = pro.isTarget
+              ? "background-color: #fff59d; font-weight: bold;"
+              : "";
+
+            proCellHTML = `
+            <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name} ${pro.isTarget ? "★" : ""}</td>
+            <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${pro.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          `;
+          }
+
+          // FAC Cell
+          let facCellHTML = `<td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px;"></td>`;
+          if (fac) {
+            const share = totalFacBills > 0 ? fac.amount / totalFacBills : 0;
+            const offer = share * facPool;
+            facTotalOffered += offer;
+            const bgStyle = fac.isTarget
+              ? "background-color: #fff59d; font-weight: bold;"
+              : "";
+
+            facCellHTML = `
+            <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name} ${fac.isTarget ? "★" : ""}</td>
+            <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${fac.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 2px 6px; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          `;
+          }
+
+          rowsHTML += `<tr style="border-bottom: 1px solid #000;">${proCellHTML}${facCellHTML}</tr>`;
+        }
+
+        container.innerHTML = `
+        ${ionHeaderHTML}
+        ${summaryTableHTML}
+
+        <table style="border-collapse: collapse; max-width: 680px; width: 100%; font-size: 11px; font-family: Arial, sans-serif; border: 1px solid #000;">
+          <thead>
+            <tr style="background-color: #f1f5f9; border-bottom: 1px solid #000; font-weight: bold;">
+              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">PRO CLINICS</th>
+              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
+              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">PRO RATA</th>
+              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">FAC CLINICS</th>
+              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
+              <th style="padding: 3px 6px; text-align: right; width: 85px;">PRO RATA</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHTML}
+          </tbody>
+          <tfoot>
+            <tr style="font-weight: bold; border-top: 1px solid #000; background-color: #f8fafc;">
+              <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
+              <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalProBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${proTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
+              <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalFacBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="padding: 3px 6px; text-align: right;">$ ${facTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+      }
+
+      function exportToCSV() {
+        const patientName =
+          document.getElementById("patient-name").value.trim() || "Patient";
+        const caseName =
+          document.getElementById("case-name").value.trim() || "Lien_Case";
+        const settlement =
+          parseFloat(document.getElementById("settlement").value) || 0;
+
+        let csv = `Patient Name,Case Reference,Gross Settlement,Provider Name,Category,AR Balance,Target Provider,Status\n`;
+
+        liens.forEach((l) => {
+          csv += `"${patientName}","${caseName}",${settlement},"${l.name}","${l.category}",${l.amount},"${l.isTarget ? "YES" : "NO"}","${l.status}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute(
+          "download",
+          `${caseName.replace(/[^a-z0-9]/gi, "_")}_ProRata.csv`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      function importFromCSV(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          const lines = evt.target.result.split("\n");
+          if (lines.length < 2) return;
+
+          let importedLiens = [];
+          let importedSettlement = 0;
+          let importedPatientName = "";
+          let importedCaseName = "";
+
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const cols = line.split(",").map((c) => c.replace(/^"|"$/g, ""));
+            if (cols.length >= 6) {
+              importedPatientName = cols[0];
+              importedCaseName = cols[1];
+              importedSettlement = parseFloat(cols[2]) || 0;
+              importedLiens.push({
+                id: Date.now() + i,
+                name: cols[3],
+                category: cols[4],
+                amount: parseFloat(cols[5]) || 0,
+                isTarget: cols[6] === "YES",
+                status: cols[7] || "Pending Proposal",
+              });
+            }
+          }
+
+          if (importedLiens.length > 0) {
+            if (importedPatientName)
+              document.getElementById("patient-name").value =
+                importedPatientName;
+            if (importedCaseName)
+              document.getElementById("case-name").value = importedCaseName;
+            if (importedSettlement)
+              document.getElementById("settlement").value = importedSettlement;
+            liens = importedLiens;
+            renderInputs();
+            calculate();
+            alert("CSV file successfully imported!");
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function saveCurrentCase() {
+        const nameInput = document.getElementById("case-name").value.trim();
+        const patientInput = document
+          .getElementById("patient-name")
+          .value.trim();
+
+        if (!nameInput) {
+          alert("Please enter a Case Name.");
+          return;
+        }
+
+        savedCases[nameInput] = {
+          patient: patientInput,
+          name: nameInput,
+          settlement:
+            parseFloat(document.getElementById("settlement").value) || 0,
+          liens: JSON.parse(JSON.stringify(liens)),
+          updatedAt: new Date().toLocaleDateString(),
+        };
+
+        localStorage.setItem("il_saved_cases", JSON.stringify(savedCases));
+        renderSavedCasesList();
+        alert(`Case "${nameInput}" saved!`);
+      }
+
+      function loadCase(key) {
+        const c = savedCases[key];
+        if (!c) return;
+        document.getElementById("patient-name").value = c.patient || "";
+        document.getElementById("case-name").value = c.name;
+        document.getElementById("settlement").value = c.settlement;
+        liens = JSON.parse(JSON.stringify(c.liens));
+        renderInputs();
+        calculate();
+      }
+
+      function deleteCase(key, e) {
+        e.stopPropagation();
+        if (confirm(`Delete "${key}"?`)) {
+          delete savedCases[key];
+          localStorage.setItem("il_saved_cases", JSON.stringify(savedCases));
+          renderSavedCasesList();
+        }
+      }
+
+      function renderSavedCasesList() {
+        const container = document.getElementById("saved-cases-list");
+        const searchTerm = (
+          document.getElementById("search-saved").value || ""
+        ).toLowerCase();
+        container.innerHTML = "";
+
+        const keys = Object.keys(savedCases).filter(
+          (k) =>
+            k.toLowerCase().includes(searchTerm) ||
+            (savedCases[k].patient &&
+              savedCases[k].patient.toLowerCase().includes(searchTerm)),
+        );
+        document.getElementById("saved-count").innerText =
+          Object.keys(savedCases).length;
+
+        if (keys.length === 0) {
+          container.innerHTML = `<div class="py-2 text-center text-slate-400 italic">No saved cases</div>`;
+          return;
+        }
+
+        keys.forEach((k) => {
+          const c = savedCases[k];
+          const div = document.createElement("div");
+          div.className =
+            "py-1.5 px-2 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition-colors rounded";
+          div.onclick = () => loadCase(k);
+          div.innerHTML = `
+          <div>
+            <div class="font-semibold text-slate-800">${c.patient ? c.patient + " - " : ""}${c.name}</div>
+            <div class="text-[10px] text-slate-400">${formatUSD(c.settlement)} • ${c.updatedAt}</div>
+          </div>
+          <button onclick="deleteCase('${k}', event)" class="text-slate-300 hover:text-red-500 p-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        `;
+          container.appendChild(div);
+        });
+      }
+
+      async function copyTableForEmail() {
+        const htmlContent = document.getElementById(
+          "email-preview-container",
+        ).innerHTML;
+        const caseName = document.getElementById("case-name").value;
+
+        try {
+          const blobHtml = new Blob([htmlContent], { type: "text/html" });
+          const blobText = new Blob(
+            [`Settlement Pro Rata Proposal - ${caseName}`],
+            { type: "text/plain" },
+          );
+          const clipboardItem = new ClipboardItem({
+            "text/html": blobHtml,
+            "text/plain": blobText,
+          });
+          await navigator.clipboard.write([clipboardItem]);
+
+          const btnText = document.getElementById("copy-btn-text");
+          btnText.innerText = "Copied to Clipboard!";
+          setTimeout(() => {
+            btnText.innerText = "Copy Proposal for Email";
+          }, 2500);
+        } catch (err) {
+          alert("Proposal copied to clipboard!");
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
