@@ -334,11 +334,22 @@
                 <h2 class="text-base font-bold text-slate-900">
                   Medical Liens & Negotiation Status
                 </h2>
-                <p class="text-xs text-slate-500">
-                  Check
-                  <span class="font-semibold text-amber-700">"Target"</span> to
-                  highlight the provider you are generating Pro Rata for.
-                </p>
+                <div class="flex items-center gap-3 mt-1 text-[11px]">
+                  <span
+                    class="inline-flex items-center gap-1 font-medium text-emerald-700"
+                    ><span
+                      class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"
+                    ></span>
+                    Green: ≥ 100% Pro Rata</span
+                  >
+                  <span
+                    class="inline-flex items-center gap-1 font-medium text-amber-700"
+                    ><span
+                      class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"
+                    ></span>
+                    Yellow: 80% - 99% Pro Rata</span
+                  >
+                </div>
               </div>
               <button
                 onclick="addLienRow()"
@@ -370,18 +381,26 @@
                     class="border-b border-slate-200 text-[11px] uppercase text-slate-600 font-bold bg-slate-100"
                   >
                     <th
-                      class="py-2.5 px-2 w-12 text-center border-r border-slate-200"
+                      class="py-2.5 px-2 w-10 text-center border-r border-slate-200"
                     >
                       Target
                     </th>
                     <th class="py-2.5 px-2 border-r border-slate-200">
                       Provider Name
                     </th>
-                    <th class="py-2.5 px-2 w-32 border-r border-slate-200">
+                    <th class="py-2.5 px-2 w-28 border-r border-slate-200">
                       Category
                     </th>
                     <th class="py-2.5 px-2 w-28 border-r border-slate-200">
                       AR Balance ($)
+                    </th>
+                    <th
+                      class="py-2.5 px-2 w-28 border-r border-slate-200 bg-blue-50/50 text-blue-900"
+                    >
+                      Pro Rata ($)
+                    </th>
+                    <th class="py-2.5 px-2 w-28 border-r border-slate-200">
+                      Offer Rec'd ($)
                     </th>
                     <th class="py-2.5 px-2 w-32 border-r border-slate-200">
                       Status
@@ -472,6 +491,7 @@
           name: "IL ORTHO NETWORK-PRO",
           category: "professional",
           amount: 8423.62,
+          offer: null,
           status: "Offer Sent",
           isTarget: true,
         },
@@ -480,6 +500,7 @@
           name: "MW SPEC PHARMACY",
           category: "professional",
           amount: 1629.23,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -488,6 +509,7 @@
           name: "ATI",
           category: "professional",
           amount: 8096.34,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -496,6 +518,7 @@
           name: "SIMONMED",
           category: "professional",
           amount: 7182.25,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -504,6 +527,7 @@
           name: "METRO ANESTHESIA",
           category: "professional",
           amount: 6406.64,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -512,6 +536,7 @@
           name: "HOPE NEURO",
           category: "professional",
           amount: 3412.5,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -520,6 +545,7 @@
           name: "ELITE REHAB",
           category: "professional",
           amount: 5335.0,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -528,6 +554,7 @@
           name: "WINDY CITY NEURO",
           category: "professional",
           amount: 9500.0,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -536,6 +563,7 @@
           name: "IL ORTHO NETWORK-FAC",
           category: "provider",
           amount: 25500.0,
+          offer: null,
           status: "Offer Sent",
           isTarget: true,
         },
@@ -544,6 +572,7 @@
           name: "OGALLA HOSP",
           category: "provider",
           amount: 31650.0,
+          offer: null,
           status: "Offer Sent",
           isTarget: false,
         },
@@ -554,7 +583,7 @@
       function init() {
         updateProviderDatalist();
         renderSavedCasesList();
-        renderInputs();
+        renderInputs(); // Initial render of input elements once
         calculate();
       }
 
@@ -583,62 +612,111 @@
         calculate();
       }
 
+      // Renders the row structure ONCE or on add/remove row operations
       function renderInputs() {
         const tbody = document.getElementById("lien-rows");
         tbody.innerHTML = "";
 
         liens.forEach((lien, index) => {
           const tr = document.createElement("tr");
-          tr.className = lien.isTarget
-            ? "bg-amber-50/80 font-medium"
-            : "hover:bg-slate-50";
+          tr.id = `lien-row-${index}`;
+          tr.className = "hover:bg-slate-50 transition-colors";
           tr.innerHTML = `
-          <td class="py-2 px-2 text-center border-r border-slate-200">
-            <input type="checkbox" ${lien.isTarget ? "checked" : ""} 
-              onchange="toggleTargetLien(${index}, this.checked)"
-              title="Check to mark as target provider for Pro Rata"
-              class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
-          </td>
-          <td class="py-2 px-2 border-r border-slate-200">
-            <input type="text" list="provider-options" value="${lien.name}" 
-              onchange="handleProviderInput(${index}, this.value)"
-              placeholder="Provider name..."
-              class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-          </td>
-          <td class="py-2 px-2 border-r border-slate-200">
-            <select onchange="updateLienField(${index}, 'category', this.value)"
-              class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-              <option value="professional" ${lien.category === "professional" ? "selected" : ""}>PRO (Clinics/Doctors)</option>
-              <option value="provider" ${lien.category === "provider" ? "selected" : ""}>FAC (Hospitals/EMS)</option>
-            </select>
-          </td>
-          <td class="py-2 px-2 border-r border-slate-200">
-            <input type="number" value="${lien.amount}" step="0.01" min="0" oninput="updateLienField(${index}, 'amount', parseFloat(this.value) || 0)"
-              class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
-          </td>
-          <td class="py-2 px-2 border-r border-slate-200">
-            <select onchange="updateLienField(${index}, 'status', this.value)"
-              class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusClass(lien.status)}">
-              <option value="Pending Proposal" ${lien.status === "Pending Proposal" ? "selected" : ""}>Pending Proposal</option>
-              <option value="Offer Sent" ${lien.status === "Offer Sent" ? "selected" : ""}>Offer Sent</option>
-              <option value="Doctor Accepted" ${lien.status === "Doctor Accepted" ? "selected" : ""}>Doctor Accepted</option>
-              <option value="Counter-Offer Received" ${lien.status === "Counter-Offer Received" ? "selected" : ""}>Counter-Offer</option>
-              <option value="Rejected" ${lien.status === "Rejected" ? "selected" : ""}>Rejected</option>
-            </select>
-          </td>
-          <td class="py-2 px-2 text-center">
-            <button onclick="removeLien(${index})" class="text-slate-400 hover:text-red-600 transition-colors p-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
-          </td>
-        `;
+        <td class="py-2 px-2 text-center border-r border-slate-200">
+          <input type="checkbox" ${lien.isTarget ? "checked" : ""} 
+            onchange="toggleTargetLien(${index}, this.checked)"
+            title="Check to mark as target provider"
+            class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
+        </td>
+        <td class="py-2 px-2 border-r border-slate-200">
+          <input type="text" list="provider-options" value="${lien.name}" 
+            onchange="handleProviderInput(${index}, this.value)"
+            placeholder="Provider name..."
+            class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+        </td>
+        <td class="py-2 px-2 border-r border-slate-200">
+          <select onchange="updateLienField(${index}, 'category', this.value)"
+            class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="professional" ${lien.category === "professional" ? "selected" : ""}>PRO (Doctors)</option>
+            <option value="provider" ${lien.category === "provider" ? "selected" : ""}>FAC (Hospitals)</option>
+          </select>
+        </td>
+        <td class="py-2 px-2 border-r border-slate-200">
+          <input type="number" value="${lien.amount}" step="0.01" min="0" 
+            oninput="updateLienField(${index}, 'amount', parseFloat(this.value) || 0)"
+            class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
+        </td>
+        <td class="py-2 px-2 border-r border-slate-200 bg-slate-50/50">
+          <input type="text" id="prorata-val-${index}" readonly value="$0.00" 
+            class="w-full px-2 py-1 bg-transparent border-0 text-xs font-bold text-right text-blue-700 focus:outline-none">
+        </td>
+        <td class="py-2 px-2 border-r border-slate-200">
+          <input type="number" value="${lien.offer !== null && lien.offer !== undefined ? lien.offer : ""}" placeholder="0.00" step="0.01" min="0" 
+            oninput="updateOfferField(${index}, this.value)"
+            class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </td>
+        <td class="py-2 px-2 border-r border-slate-200">
+          <select onchange="updateLienField(${index}, 'status', this.value)"
+            class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusClass(lien.status)}">
+            <option value="Pending Proposal" ${lien.status === "Pending Proposal" ? "selected" : ""}>Pending Proposal</option>
+            <option value="Offer Sent" ${lien.status === "Offer Sent" ? "selected" : ""}>Offer Sent</option>
+            <option value="Doctor Accepted" ${lien.status === "Doctor Accepted" ? "selected" : ""}>Doctor Accepted</option>
+            <option value="Counter-Offer Received" ${lien.status === "Counter-Offer Received" ? "selected" : ""}>Counter-Offer</option>
+            <option value="Rejected" ${lien.status === "Rejected" ? "selected" : ""}>Rejected</option>
+          </select>
+        </td>
+        <td class="py-2 px-2 text-center">
+          <button onclick="removeLien(${index})" class="text-slate-400 hover:text-red-600 transition-colors p-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 00-2-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </td>
+      `;
           tbody.appendChild(tr);
         });
       }
 
+      // Dynamically updates row styles and Pro Rata values without rebuilding inputs
+      function updateRowStyles(proRataMap) {
+        liens.forEach((lien, index) => {
+          const row = document.getElementById(`lien-row-${index}`);
+          const prorataElem = document.getElementById(`prorata-val-${index}`);
+          if (!row) return;
+
+          const targetProRata = proRataMap[lien.id] || 0;
+          if (prorataElem) {
+            prorataElem.value = formatUSD(targetProRata);
+          }
+
+          const offerVal =
+            lien.offer !== null && lien.offer !== undefined
+              ? parseFloat(lien.offer)
+              : null;
+
+          let rowClass = "hover:bg-slate-50 transition-colors";
+          if (offerVal !== null && offerVal > 0 && targetProRata > 0) {
+            const ratio = offerVal / targetProRata;
+            if (ratio >= 0.999) {
+              rowClass =
+                "bg-emerald-100/80 font-medium text-emerald-950 border-l-4 border-l-emerald-600";
+            } else if (ratio >= 0.8) {
+              rowClass =
+                "bg-amber-100/80 font-medium text-amber-950 border-l-4 border-l-amber-500";
+            }
+          } else if (lien.isTarget) {
+            rowClass = "bg-blue-50/70 font-medium border-l-4 border-l-blue-500";
+          }
+
+          row.className = rowClass;
+        });
+      }
+
+      function updateOfferField(index, val) {
+        liens[index].offer = val === "" ? null : parseFloat(val);
+        calculate();
+      }
+
       function toggleTargetLien(index, checked) {
         liens[index].isTarget = checked;
-        renderInputs();
         calculate();
       }
 
@@ -677,13 +755,11 @@
           });
           updateProviderDatalist();
         }
-        renderInputs();
         calculate();
       }
 
       function updateLienField(index, field, val) {
         liens[index][field] = val;
-        if (field === "category" || field === "status") renderInputs();
         calculate();
       }
 
@@ -693,6 +769,7 @@
           name: "",
           category: "professional",
           amount: 0,
+          offer: null,
           status: "Pending Proposal",
           isTarget: false,
         });
@@ -765,9 +842,20 @@
           }
         }
 
-        document.getElementById("calculation-status").innerText =
-          `Settlement: ${formatUSD(settlement)} | Total AR: ${formatUSD(grandTotalBills)} | Total Offer: ${formatUSD(proPool + facPool)}`;
+        let proRataMap = {};
+        liens.forEach((l) => {
+          let pool = l.category === "professional" ? proPool : facPool;
+          let totalCategoryBills =
+            l.category === "professional" ? totalProBills : totalFacBills;
+          let share =
+            totalCategoryBills > 0 ? l.amount / totalCategoryBills : 0;
+          proRataMap[l.id] = share * pool;
+        });
 
+        document.getElementById("calculation-status").innerText =
+          `Settlement: ${formatUSD(settlement)} | Total AR: ${formatUSD(grandTotalBills)} | Total Offer Pool: ${formatUSD(proPool + facPool)}`;
+
+        updateRowStyles(proRataMap);
         renderEmailOutput(
           settlement,
           totalProBills,
@@ -775,6 +863,7 @@
           grandTotalBills,
           proPool,
           facPool,
+          proRataMap,
         );
       }
 
@@ -785,12 +874,12 @@
         grandTotalBills,
         proPool,
         facPool,
+        proRataMap,
       ) {
         const container = document.getElementById("email-preview-container");
         const patientName = document.getElementById("patient-name").value;
         const caseName = document.getElementById("case-name").value;
 
-        // 1. ION Header Block (Includes Patient Name & Case Reference)
         let ionHeaderHTML = "";
         if (
           ionEnabled &&
@@ -811,42 +900,40 @@
           const services = document.getElementById("ion-services").value;
 
           ionHeaderHTML = `
-          <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
-            ${patientName ? `<div><strong>Patient: ${patientName}</strong></div>` : ""}
-            <div><strong>Case: ${caseName}</strong></div>
-            <div>ION PRO Balance: ${formatUSD(proBal)}</div>
-            <div>ION FAC Balance: ${formatUSD(facBal)}</div>
-            <div>ION Payments: ${formatUSD(payments)}</div>
-            <div>ION Adjustments: ${formatUSD(adj)}</div>
-            <div>ION PRO Proposal: ${formatUSD(proProposal)}</div>
-            <div>ION FAC Proposal: ${formatUSD(facProposal)}</div>
-            <div>${services}</div>
-            <div style="margin-top: 4px;">
-              *Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. Offers are pro rata.
-            </div>
+        <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
+          ${patientName ? `<div><strong>Patient: ${patientName}</strong></div>` : ""}
+          <div><strong>Case: ${caseName}</strong></div>
+          <div>ION PRO Balance: ${formatUSD(proBal)}</div>
+          <div>ION FAC Balance: ${formatUSD(facBal)}</div>
+          <div>ION Payments: ${formatUSD(payments)}</div>
+          <div>ION Adjustments: ${formatUSD(adj)}</div>
+          <div>ION PRO Proposal: ${formatUSD(proProposal)}</div>
+          <div>ION FAC Proposal: ${formatUSD(facProposal)}</div>
+          <div>${services}</div>
+          <div style="margin-top: 4px;">
+            *Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. Offers are pro rata.
           </div>
-        `;
+        </div>
+      `;
         }
 
-        // 2. Summary Table
         const summaryTableHTML = `
-        <table style="border-collapse: collapse; width: 220px; font-size: 11px; font-family: Arial, sans-serif; margin-bottom: 12px; border: 1px solid #000;">
-          <tr>
-            <td style="padding: 2px 6px; font-weight: bold; border: 1px solid #000;">TOTAL SETTLMENT</td>
-            <td style="padding: 2px 6px; font-weight: bold; text-align: right; border: 1px solid #000; background-color: #dbeafe;">${settlement.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          </tr>
-          <tr>
-            <td style="padding: 2px 6px; border: 1px solid #000;">Amount to PRO</td>
-            <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${proPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          </tr>
-          <tr>
-            <td style="padding: 2px 6px; border: 1px solid #000;">Amount to FAC</td>
-            <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${facPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          </tr>
-        </table>
-      `;
+      <table style="border-collapse: collapse; width: 220px; font-size: 11px; font-family: Arial, sans-serif; margin-bottom: 12px; border: 1px solid #000;">
+        <tr>
+          <td style="padding: 2px 6px; font-weight: bold; border: 1px solid #000;">TOTAL SETTLMENT</td>
+          <td style="padding: 2px 6px; font-weight: bold; text-align: right; border: 1px solid #000; background-color: #dbeafe;">${settlement.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        <tr>
+          <td style="padding: 2px 6px; border: 1px solid #000;">Amount to PRO</td>
+          <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${proPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        <tr>
+          <td style="padding: 2px 6px; border: 1px solid #000;">Amount to FAC</td>
+          <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${facPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+      </table>
+    `;
 
-        // 3. Compact Main Table
         const proItems = liens.filter((l) => l.category === "professional");
         const facItems = liens.filter((l) => l.category === "provider");
         const maxRows = Math.max(proItems.length, facItems.length);
@@ -859,73 +946,85 @@
           const pro = proItems[i];
           const fac = facItems[i];
 
-          // PRO Cell
           let proCellHTML = `<td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td>`;
           if (pro) {
-            const share = totalProBills > 0 ? pro.amount / totalProBills : 0;
-            const offer = share * proPool;
+            const offer = proRataMap[pro.id] || 0;
             proTotalOffered += offer;
-            const bgStyle = pro.isTarget
+            let bgStyle = pro.isTarget
               ? "background-color: #fff59d; font-weight: bold;"
               : "";
+
+            if (pro.offer !== null && pro.offer > 0 && offer > 0) {
+              const ratio = pro.offer / offer;
+              if (ratio >= 0.999)
+                bgStyle = "background-color: #d1fae5; font-weight: bold;";
+              else if (ratio >= 0.8)
+                bgStyle = "background-color: #fef3c7; font-weight: bold;";
+            }
 
             proCellHTML = `
-            <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name} ${pro.isTarget ? "★" : ""}</td>
-            <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${pro.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          `;
+          <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name} ${pro.isTarget ? "★" : ""}</td>
+          <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${pro.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        `;
           }
 
-          // FAC Cell
           let facCellHTML = `<td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px;"></td>`;
           if (fac) {
-            const share = totalFacBills > 0 ? fac.amount / totalFacBills : 0;
-            const offer = share * facPool;
+            const offer = proRataMap[fac.id] || 0;
             facTotalOffered += offer;
-            const bgStyle = fac.isTarget
+            let bgStyle = fac.isTarget
               ? "background-color: #fff59d; font-weight: bold;"
               : "";
 
+            if (fac.offer !== null && fac.offer > 0 && offer > 0) {
+              const ratio = fac.offer / offer;
+              if (ratio >= 0.999)
+                bgStyle = "background-color: #d1fae5; font-weight: bold;";
+              else if (ratio >= 0.8)
+                bgStyle = "background-color: #fef3c7; font-weight: bold;";
+            }
+
             facCellHTML = `
-            <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name} ${fac.isTarget ? "★" : ""}</td>
-            <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${fac.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="padding: 2px 6px; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          `;
+          <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name} ${fac.isTarget ? "★" : ""}</td>
+          <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${fac.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding: 2px 6px; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        `;
           }
 
           rowsHTML += `<tr style="border-bottom: 1px solid #000;">${proCellHTML}${facCellHTML}</tr>`;
         }
 
         container.innerHTML = `
-        ${ionHeaderHTML}
-        ${summaryTableHTML}
+      ${ionHeaderHTML}
+      ${summaryTableHTML}
 
-        <table style="border-collapse: collapse; max-width: 680px; width: 100%; font-size: 11px; font-family: Arial, sans-serif; border: 1px solid #000;">
-          <thead>
-            <tr style="background-color: #f1f5f9; border-bottom: 1px solid #000; font-weight: bold;">
-              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">PRO CLINICS</th>
-              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
-              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">PRO RATA</th>
-              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">FAC CLINICS</th>
-              <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
-              <th style="padding: 3px 6px; text-align: right; width: 85px;">PRO RATA</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHTML}
-          </tbody>
-          <tfoot>
-            <tr style="font-weight: bold; border-top: 1px solid #000; background-color: #f8fafc;">
-              <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
-              <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalProBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${proTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
-              <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalFacBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              <td style="padding: 3px 6px; text-align: right;">$ ${facTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            </tr>
-          </tfoot>
-        </table>
-      `;
+      <table style="border-collapse: collapse; max-width: 680px; width: 100%; font-size: 11px; font-family: Arial, sans-serif; border: 1px solid #000;">
+        <thead>
+          <tr style="background-color: #f1f5f9; border-bottom: 1px solid #000; font-weight: bold;">
+            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">PRO CLINICS</th>
+            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
+            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">PRO RATA</th>
+            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">FAC CLINICS</th>
+            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
+            <th style="padding: 3px 6px; text-align: right; width: 85px;">PRO RATA</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHTML}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight: bold; border-top: 1px solid #000; background-color: #f8fafc;">
+            <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
+            <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalProBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${proTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
+            <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalFacBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 3px 6px; text-align: right;">$ ${facTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
       }
 
       function exportToCSV() {
@@ -936,10 +1035,10 @@
         const settlement =
           parseFloat(document.getElementById("settlement").value) || 0;
 
-        let csv = `Patient Name,Case Reference,Gross Settlement,Provider Name,Category,AR Balance,Target Provider,Status\n`;
+        let csv = `Patient Name,Case Reference,Gross Settlement,Provider Name,Category,AR Balance,Offered Amount,Target Provider,Status\n`;
 
         liens.forEach((l) => {
-          csv += `"${patientName}","${caseName}",${settlement},"${l.name}","${l.category}",${l.amount},"${l.isTarget ? "YES" : "NO"}","${l.status}"\n`;
+          csv += `"${patientName}","${caseName}",${settlement},"${l.name}","${l.category}",${l.amount},${l.offer || 0},"${l.isTarget ? "YES" : "NO"}","${l.status}"\n`;
         });
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -981,8 +1080,9 @@
                 name: cols[3],
                 category: cols[4],
                 amount: parseFloat(cols[5]) || 0,
-                isTarget: cols[6] === "YES",
-                status: cols[7] || "Pending Proposal",
+                offer: parseFloat(cols[6]) || null,
+                isTarget: cols[7] === "YES",
+                status: cols[8] || "Pending Proposal",
               });
             }
           }
@@ -1077,14 +1177,14 @@
             "py-1.5 px-2 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition-colors rounded";
           div.onclick = () => loadCase(k);
           div.innerHTML = `
-          <div>
-            <div class="font-semibold text-slate-800">${c.patient ? c.patient + " - " : ""}${c.name}</div>
-            <div class="text-[10px] text-slate-400">${formatUSD(c.settlement)} • ${c.updatedAt}</div>
-          </div>
-          <button onclick="deleteCase('${k}', event)" class="text-slate-300 hover:text-red-500 p-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        `;
+        <div>
+          <div class="font-semibold text-slate-800">${c.patient ? c.patient + " - " : ""}${c.name}</div>
+          <div class="text-[10px] text-slate-400">${formatUSD(c.settlement)} • ${c.updatedAt}</div>
+        </div>
+        <button onclick="deleteCase('${k}', event)" class="text-slate-300 hover:text-red-500 p-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      `;
           container.appendChild(div);
         });
       }
