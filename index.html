@@ -203,7 +203,7 @@
               />
             </div>
 
-            <!-- Dropdown lista klinika/provajdera -->
+            <!-- Clean & Stylized Dropdown -->
             <div>
               <label class="block text-xs font-semibold text-amber-900 mb-1"
                 >Select Clinic / Facility</label
@@ -211,7 +211,7 @@
               <select
                 id="facility-dropdown"
                 onchange="handleFacilityChange(this.value)"
-                class="w-full p-1.5 bg-white border border-slate-300 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 cursor-pointer"
               >
                 <!-- Popunjava se automatski -->
               </select>
@@ -1210,7 +1210,7 @@
               ${balanceDetailsHTML}
               ${services ? `<div>${services}</div>` : ""}
               <div style="margin-top: 4px;">
-                *Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. ${offerPctText}
+                Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. ${offerPctText}
               </div>
             </div>
           `;
