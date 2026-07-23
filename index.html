@@ -41,7 +41,7 @@
 
       <!-- Main Workspace Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column: Case Parameters & ION Block -->
+        <!-- Left Column: Case Parameters & Dynamic Clinic Block -->
         <div class="space-y-6 lg:col-span-1">
           <!-- Case Details -->
           <div
@@ -60,7 +60,7 @@
               <input
                 type="text"
                 id="patient-name"
-                value="John Doe"
+                value=""
                 oninput="calculate()"
                 placeholder="e.g. John Doe"
                 class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -74,8 +74,9 @@
               <input
                 type="text"
                 id="case-name"
-                value="Malman Law"
+                value=""
                 oninput="calculate()"
+                placeholder="e.g. Reference Code"
                 class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -92,7 +93,7 @@
                 <input
                   type="number"
                   id="settlement"
-                  value="200000"
+                  value="0"
                   step="100"
                   min="0"
                   oninput="calculate()"
@@ -159,7 +160,7 @@
             </div>
           </div>
 
-          <!-- ION Specific Form (Dual PRO / FAC) -->
+          <!-- Dynamic Clinic Specific Form -->
           <div
             id="ion-config-box"
             class="bg-amber-50/60 p-5 rounded-xl shadow-sm border border-amber-200 space-y-3"
@@ -168,6 +169,7 @@
               class="flex justify-between items-center border-b border-amber-200/80 pb-2"
             >
               <h2
+                id="facility-header-title"
                 class="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1"
               >
                 <svg
@@ -181,7 +183,7 @@
                     clip-rule="evenodd"
                   ></path>
                 </svg>
-                ION Header Settings
+                Clinic Header Settings
               </h2>
               <input
                 type="checkbox"
@@ -192,38 +194,64 @@
               />
             </div>
 
+            <!-- Clinic Select Dropdown -->
+            <div>
+              <label class="block text-xs font-semibold text-amber-900 mb-1"
+                >Select Clinic / Facility</label
+              >
+              <select
+                id="facility-dropdown"
+                onchange="handleFacilityChange(this.value)"
+                class="w-full p-1.5 bg-white border border-slate-300 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
             <div id="ion-fields-container" class="space-y-2 text-xs">
               <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-0.5"
-                    >ION PRO Balance ($)</label
+                <div id="pro-balance-container">
+                  <label
+                    id="lbl-pro-balance"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Balance ($)</label
                   >
                   <input
                     type="number"
                     id="ion-pro-balance"
-                    value="8423.62"
-                    oninput="calculate()"
-                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('pro');
+                      calculate();
+                    "
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-semibold text-slate-800"
                   />
                 </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-0.5"
-                    >ION FAC Balance ($)</label
+                <div id="fac-balance-container">
+                  <label
+                    id="lbl-fac-balance"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Balance ($)</label
                   >
                   <input
                     type="number"
                     id="ion-fac-balance"
-                    value="25500.00"
-                    oninput="calculate()"
-                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('fac');
+                      calculate();
+                    "
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-semibold text-slate-800"
                   />
                 </div>
               </div>
 
               <div class="grid grid-cols-2 gap-2">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-0.5"
-                    >ION Payments ($)</label
+                  <label
+                    id="lbl-payments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >Payments ($)</label
                   >
                   <input
                     type="number"
@@ -234,8 +262,10 @@
                   />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-0.5"
-                    >ION Adjustments ($)</label
+                  <label
+                    id="lbl-adjustments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >Adjustments ($)</label
                   >
                   <input
                     type="number"
@@ -248,27 +278,37 @@
               </div>
 
               <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-0.5"
-                    >ION PRO Proposal ($)</label
+                <div id="pro-proposal-container">
+                  <label
+                    id="lbl-pro-proposal"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Proposal ($)</label
                   >
                   <input
                     type="number"
                     id="ion-pro-proposal"
-                    value="6740.84"
-                    oninput="calculate()"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('pro');
+                      calculate();
+                    "
                     class="w-full p-1.5 bg-white border border-slate-300 rounded font-bold text-amber-800"
                   />
                 </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-0.5"
-                    >ION FAC Proposal ($)</label
+                <div id="fac-proposal-container">
+                  <label
+                    id="lbl-fac-proposal"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Proposal ($)</label
                   >
                   <input
                     type="number"
                     id="ion-fac-proposal"
-                    value="18000.00"
-                    oninput="calculate()"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('fac');
+                      calculate();
+                    "
                     class="w-full p-1.5 bg-white border border-slate-300 rounded font-bold text-amber-800"
                   />
                 </div>
@@ -281,7 +321,8 @@
                 <input
                   type="text"
                   id="ion-services"
-                  value="1 epidural, 3 nerve blocks, 6 OV, 1 tox"
+                  value=""
+                  placeholder="e.g. Services rendered..."
                   oninput="calculate()"
                   class="w-full p-1.5 bg-white border border-slate-300 rounded"
                 />
@@ -445,7 +486,7 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H8m0 0a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 001-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H8m0 0a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
                   />
                 </svg>
                 <span id="copy-btn-text">Copy Proposal for Email</span>
@@ -467,123 +508,143 @@
     <datalist id="provider-options"></datalist>
 
     <script>
-      const DEFAULT_PROVIDERS = [
-        { name: "IL ORTHO NETWORK-PRO", category: "professional" },
-        { name: "MW SPEC PHARMACY", category: "professional" },
-        { name: "ATI", category: "professional" },
-        { name: "SIMONMED", category: "professional" },
-        { name: "METRO ANESTHESIA", category: "professional" },
-        { name: "HOPE NEURO", category: "professional" },
-        { name: "ELITE REHAB", category: "professional" },
-        { name: "WINDY CITY NEURO", category: "professional" },
-        { name: "IL ORTHO NETWORK-FAC", category: "provider" },
-        { name: "OGALLA HOSP", category: "provider" },
+      const CLINICS = [
+        { code: "AFA", type: "pro" },
+        { code: "AMS", type: "pro" },
+        { code: "BBJC", type: "pro" },
+        { code: "BIM", type: "pro" },
+        { code: "BJC", type: "pro" },
+        { code: "BPT", type: "pro" },
+        { code: "BVPT", type: "pro" },
+        { code: "CNPT", type: "pro" },
+        { code: "CPA", type: "pro" },
+        { code: "CR", type: "pro" },
+        { code: "DSAO", type: "pro" },
+        { code: "GW", type: "pro" },
+        { code: "HPSC", type: "fac" },
+        { code: "IAS", type: "pro" },
+        { code: "ICA", type: "pro" },
+        { code: "ICI", type: "pro" },
+        { code: "IN", type: "pro" },
+        { code: "ION", type: "dual" },
+        { code: "ITC", type: "pro" },
+        { code: "MA", type: "pro" },
+        { code: "MCI", type: "pro" },
+        { code: "MCR", type: "pro" },
+        { code: "MK", type: "pro" },
+        { code: "MLIC", type: "pro" },
+        { code: "MMC", type: "pro" },
+        { code: "MPR", type: "pro" },
+        { code: "MRI MLA", type: "pro" },
+        { code: "MSP", type: "pro" },
+        { code: "MSS", type: "pro" },
+        { code: "MTP", type: "pro" },
+        { code: "NPC", type: "pro" },
+        { code: "NSPS", type: "fac" },
+        { code: "PC", type: "pro" },
+        { code: "PHS", type: "pro" },
+        { code: "PPP", type: "pro" },
+        { code: "RRA", type: "pro" },
+        { code: "SM", type: "pro" },
+        { code: "SSPT", type: "pro" },
+        { code: "UN", type: "pro" },
+        { code: "VSS", type: "fac" },
+        { code: "WSPT", type: "pro" },
+        { code: "XR", type: "pro" },
       ];
 
+      let selectedClinic = CLINICS[0];
       let providerDirectory =
-        JSON.parse(localStorage.getItem("il_provider_directory")) ||
-        DEFAULT_PROVIDERS;
+        JSON.parse(localStorage.getItem("il_provider_directory")) || [];
       let savedCases = JSON.parse(localStorage.getItem("il_saved_cases")) || {};
-
-      let liens = [
-        {
-          id: 1,
-          name: "IL ORTHO NETWORK-PRO",
-          category: "professional",
-          amount: 8423.62,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: true,
-        },
-        {
-          id: 2,
-          name: "MW SPEC PHARMACY",
-          category: "professional",
-          amount: 1629.23,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 3,
-          name: "ATI",
-          category: "professional",
-          amount: 8096.34,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 4,
-          name: "SIMONMED",
-          category: "professional",
-          amount: 7182.25,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 5,
-          name: "METRO ANESTHESIA",
-          category: "professional",
-          amount: 6406.64,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 6,
-          name: "HOPE NEURO",
-          category: "professional",
-          amount: 3412.5,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 7,
-          name: "ELITE REHAB",
-          category: "professional",
-          amount: 5335.0,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 8,
-          name: "WINDY CITY NEURO",
-          category: "professional",
-          amount: 9500.0,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-        {
-          id: 9,
-          name: "IL ORTHO NETWORK-FAC",
-          category: "provider",
-          amount: 25500.0,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: true,
-        },
-        {
-          id: 10,
-          name: "OGALLA HOSP",
-          category: "provider",
-          amount: 31650.0,
-          offer: null,
-          status: "Offer Sent",
-          isTarget: false,
-        },
-      ];
-
+      let liens = [];
       let ionEnabled = true;
 
       function init() {
+        populateFacilityDropdown();
         updateProviderDatalist();
         renderSavedCasesList();
-        renderInputs(); // Initial render of input elements once
+        renderInputs();
+        calculate();
+      }
+
+      function populateFacilityDropdown() {
+        const select = document.getElementById("facility-dropdown");
+        select.innerHTML = "";
+        CLINICS.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c.code;
+          opt.textContent = c.code;
+          select.appendChild(opt);
+        });
+        handleFacilityChange(CLINICS[0].code);
+      }
+
+      function handleFacilityChange(code) {
+        selectedClinic = CLINICS.find((c) => c.code === code) || CLINICS[0];
+
+        document.getElementById("facility-header-title").innerHTML = `
+          <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          ${selectedClinic.code} Header Settings
+        `;
+
+        const proBalContainer = document.getElementById(
+          "pro-balance-container",
+        );
+        const facBalContainer = document.getElementById(
+          "fac-balance-container",
+        );
+        const proPropContainer = document.getElementById(
+          "pro-proposal-container",
+        );
+        const facPropContainer = document.getElementById(
+          "fac-proposal-container",
+        );
+
+        if (selectedClinic.type === "dual") {
+          proBalContainer.style.display = "block";
+          facBalContainer.style.display = "block";
+          proPropContainer.style.display = "block";
+          facPropContainer.style.display = "block";
+
+          document.getElementById("lbl-pro-balance").innerText =
+            `${selectedClinic.code} PRO Balance ($)`;
+          document.getElementById("lbl-fac-balance").innerText =
+            `${selectedClinic.code} FAC Balance ($)`;
+          document.getElementById("lbl-pro-proposal").innerText =
+            `${selectedClinic.code} PRO Proposal ($)`;
+          document.getElementById("lbl-fac-proposal").innerText =
+            `${selectedClinic.code} FAC Proposal ($)`;
+        } else if (selectedClinic.type === "fac") {
+          proBalContainer.style.display = "none";
+          facBalContainer.style.display = "block";
+          proPropContainer.style.display = "none";
+          facPropContainer.style.display = "block";
+
+          document.getElementById("lbl-fac-balance").innerText =
+            `${selectedClinic.code} FAC Balance ($)`;
+          document.getElementById("lbl-fac-proposal").innerText =
+            `${selectedClinic.code} FAC Proposal ($)`;
+        } else {
+          proBalContainer.style.display = "block";
+          facBalContainer.style.display = "none";
+          proPropContainer.style.display = "block";
+          facPropContainer.style.display = "none";
+
+          document.getElementById("lbl-pro-balance").innerText =
+            `${selectedClinic.code} PRO Balance ($)`;
+          document.getElementById("lbl-pro-proposal").innerText =
+            `${selectedClinic.code} PRO Proposal ($)`;
+        }
+
+        document.getElementById("lbl-payments").innerText =
+          `${selectedClinic.code} Payments ($)`;
+        document.getElementById("lbl-adjustments").innerText =
+          `${selectedClinic.code} Adjustments ($)`;
+
+        syncTableToHeader();
         calculate();
       }
 
@@ -612,7 +673,82 @@
         calculate();
       }
 
-      // Renders the row structure ONCE or on add/remove row operations
+      /* -------------------------------------------------------------
+         AUTO-SYNC LOGIC (Table <-> Header)
+      ------------------------------------------------------------- */
+      function syncHeaderToTable(categoryType) {
+        const targetCategory =
+          categoryType === "fac" ? "provider" : "professional";
+        const valBal =
+          parseFloat(
+            document.getElementById(`ion-${categoryType}-balance`).value,
+          ) || 0;
+        const valProp =
+          parseFloat(
+            document.getElementById(`ion-${categoryType}-proposal`).value,
+          ) || 0;
+
+        let targetLien = liens.find(
+          (l) => l.isTarget && l.category === targetCategory,
+        );
+
+        if (!targetLien) {
+          targetLien = liens.find(
+            (l) =>
+              l.name
+                .toLowerCase()
+                .startsWith(selectedClinic.code.toLowerCase()) &&
+              l.category === targetCategory,
+          );
+        }
+
+        if (targetLien) {
+          targetLien.isTarget = true;
+          targetLien.amount = valBal;
+          targetLien.offer = valProp > 0 ? valProp : null;
+        } else if (valBal > 0 || valProp > 0) {
+          liens.push({
+            id: Date.now(),
+            name: `${selectedClinic.code} (${categoryType.toUpperCase()})`,
+            category: targetCategory,
+            amount: valBal,
+            offer: valProp > 0 ? valProp : null,
+            status: "Pending Proposal",
+            isTarget: true,
+          });
+        }
+        renderInputs();
+      }
+
+      function syncTableToHeader() {
+        let proBalanceTotal = 0;
+        let proProposalTotal = 0;
+        let facBalanceTotal = 0;
+        let facProposalTotal = 0;
+
+        liens.forEach((l) => {
+          if (l.isTarget) {
+            if (l.category === "professional") {
+              proBalanceTotal += l.amount || 0;
+              proProposalTotal += l.offer || 0;
+            } else if (l.category === "provider") {
+              facBalanceTotal += l.amount || 0;
+              facProposalTotal += l.offer || 0;
+            }
+          }
+        });
+
+        const proBalInput = document.getElementById("ion-pro-balance");
+        const proPropInput = document.getElementById("ion-pro-proposal");
+        const facBalInput = document.getElementById("ion-fac-balance");
+        const facPropInput = document.getElementById("ion-fac-proposal");
+
+        if (proBalInput) proBalInput.value = proBalanceTotal.toFixed(2);
+        if (proPropInput) proPropInput.value = proProposalTotal.toFixed(2);
+        if (facBalInput) facBalInput.value = facBalanceTotal.toFixed(2);
+        if (facPropInput) facPropInput.value = facProposalTotal.toFixed(2);
+      }
+
       function renderInputs() {
         const tbody = document.getElementById("lien-rows");
         tbody.innerHTML = "";
@@ -622,60 +758,59 @@
           tr.id = `lien-row-${index}`;
           tr.className = "hover:bg-slate-50 transition-colors";
           tr.innerHTML = `
-        <td class="py-2 px-2 text-center border-r border-slate-200">
-          <input type="checkbox" ${lien.isTarget ? "checked" : ""} 
-            onchange="toggleTargetLien(${index}, this.checked)"
-            title="Check to mark as target provider"
-            class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
-        </td>
-        <td class="py-2 px-2 border-r border-slate-200">
-          <input type="text" list="provider-options" value="${lien.name}" 
-            onchange="handleProviderInput(${index}, this.value)"
-            placeholder="Provider name..."
-            class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-        </td>
-        <td class="py-2 px-2 border-r border-slate-200">
-          <select onchange="updateLienField(${index}, 'category', this.value)"
-            class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
-            <option value="professional" ${lien.category === "professional" ? "selected" : ""}>PRO (Doctors)</option>
-            <option value="provider" ${lien.category === "provider" ? "selected" : ""}>FAC (Hospitals)</option>
-          </select>
-        </td>
-        <td class="py-2 px-2 border-r border-slate-200">
-          <input type="number" value="${lien.amount}" step="0.01" min="0" 
-            oninput="updateLienField(${index}, 'amount', parseFloat(this.value) || 0)"
-            class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
-        </td>
-        <td class="py-2 px-2 border-r border-slate-200 bg-slate-50/50">
-          <input type="text" id="prorata-val-${index}" readonly value="$0.00" 
-            class="w-full px-2 py-1 bg-transparent border-0 text-xs font-bold text-right text-blue-700 focus:outline-none">
-        </td>
-        <td class="py-2 px-2 border-r border-slate-200">
-          <input type="number" value="${lien.offer !== null && lien.offer !== undefined ? lien.offer : ""}" placeholder="0.00" step="0.01" min="0" 
-            oninput="updateOfferField(${index}, this.value)"
-            class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </td>
-        <td class="py-2 px-2 border-r border-slate-200">
-          <select onchange="updateLienField(${index}, 'status', this.value)"
-            class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusClass(lien.status)}">
-            <option value="Pending Proposal" ${lien.status === "Pending Proposal" ? "selected" : ""}>Pending Proposal</option>
-            <option value="Offer Sent" ${lien.status === "Offer Sent" ? "selected" : ""}>Offer Sent</option>
-            <option value="Doctor Accepted" ${lien.status === "Doctor Accepted" ? "selected" : ""}>Doctor Accepted</option>
-            <option value="Counter-Offer Received" ${lien.status === "Counter-Offer Received" ? "selected" : ""}>Counter-Offer</option>
-            <option value="Rejected" ${lien.status === "Rejected" ? "selected" : ""}>Rejected</option>
-          </select>
-        </td>
-        <td class="py-2 px-2 text-center">
-          <button onclick="removeLien(${index})" class="text-slate-400 hover:text-red-600 transition-colors p-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 00-2-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-        </td>
-      `;
+            <td class="py-2 px-2 text-center border-r border-slate-200">
+              <input type="checkbox" ${lien.isTarget ? "checked" : ""} 
+                onchange="toggleTargetLien(${index}, this.checked)"
+                title="Check to mark as target clinic/provider"
+                class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <input type="text" list="provider-options" value="${lien.name}" 
+                onchange="handleProviderInput(${index}, this.value)"
+                placeholder="Provider name..."
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <select onchange="updateLienField(${index}, 'category', this.value)"
+                class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="professional" ${lien.category === "professional" ? "selected" : ""}>PRO (Doctors)</option>
+                <option value="provider" ${lien.category === "provider" ? "selected" : ""}>FAC (Hospitals)</option>
+              </select>
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <input type="number" value="${lien.amount}" step="0.01" min="0" 
+                oninput="updateLienField(${index}, 'amount', parseFloat(this.value) || 0)"
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200 bg-slate-50/50">
+              <input type="text" id="prorata-val-${index}" readonly value="$0.00" 
+                class="w-full px-2 py-1 bg-transparent border-0 text-xs font-bold text-right text-blue-700 focus:outline-none">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <input type="number" value="${lien.offer !== null && lien.offer !== undefined ? lien.offer : ""}" placeholder="0.00" step="0.01" min="0" 
+                oninput="updateOfferField(${index}, this.value)"
+                class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <select onchange="updateLienField(${index}, 'status', this.value)"
+                class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusClass(lien.status)}">
+                <option value="Pending Proposal" ${lien.status === "Pending Proposal" ? "selected" : ""}>Pending Proposal</option>
+                <option value="Offer Sent" ${lien.status === "Offer Sent" ? "selected" : ""}>Offer Sent</option>
+                <option value="Doctor Accepted" ${lien.status === "Doctor Accepted" ? "selected" : ""}>Doctor Accepted</option>
+                <option value="Counter-Offer Received" ${lien.status === "Counter-Offer Received" ? "selected" : ""}>Counter-Offer</option>
+                <option value="Rejected" ${lien.status === "Rejected" ? "selected" : ""}>Rejected</option>
+              </select>
+            </td>
+            <td class="py-2 px-2 text-center">
+              <button onclick="removeLien(${index})" class="text-slate-400 hover:text-red-600 transition-colors p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 00-2-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </td>
+          `;
           tbody.appendChild(tr);
         });
       }
 
-      // Dynamically updates row styles and Pro Rata values without rebuilding inputs
       function updateRowStyles(proRataMap) {
         liens.forEach((lien, index) => {
           const row = document.getElementById(`lien-row-${index}`);
@@ -712,11 +847,13 @@
 
       function updateOfferField(index, val) {
         liens[index].offer = val === "" ? null : parseFloat(val);
+        syncTableToHeader();
         calculate();
       }
 
       function toggleTargetLien(index, checked) {
         liens[index].isTarget = checked;
+        syncTableToHeader();
         calculate();
       }
 
@@ -737,29 +874,25 @@
 
       function handleProviderInput(index, val) {
         liens[index].name = val;
-        const upperName = val.toUpperCase();
-
-        if (upperName.includes("ION") || upperName.includes("ORTHO")) {
-          document.getElementById("ion-enable-toggle").checked = true;
-          toggleIONBox(true);
-        }
-
         const matched = providerDirectory.find(
           (p) => p.name.toLowerCase() === val.trim().toLowerCase(),
         );
-        if (matched) liens[index].category = matched.category;
-        else if (val.trim().length > 3) {
+        if (matched) {
+          liens[index].category = matched.category;
+        } else if (val.trim().length > 3) {
           providerDirectory.push({
             name: val.trim(),
             category: liens[index].category,
           });
           updateProviderDatalist();
         }
+        syncTableToHeader();
         calculate();
       }
 
       function updateLienField(index, field, val) {
         liens[index][field] = val;
+        syncTableToHeader();
         calculate();
       }
 
@@ -780,6 +913,7 @@
       function removeLien(index) {
         liens.splice(index, 1);
         renderInputs();
+        syncTableToHeader();
         calculate();
       }
 
@@ -795,17 +929,15 @@
       function calculate() {
         const settlement =
           parseFloat(document.getElementById("settlement").value) || 0;
-
         let totalProBills = 0;
         let totalFacBills = 0;
 
         liens.forEach((l) => {
           if (l.category === "professional") totalProBills += l.amount || 0;
-          else totalFacBills += l.amount || 0;
+          else if (l.category === "provider") totalFacBills += l.amount || 0;
         });
 
         const grandTotalBills = totalProBills + totalFacBills;
-
         let proPool = 0;
         let facPool = 0;
 
@@ -818,23 +950,21 @@
         } else if (!hasPro && hasFac) {
           facPool = Math.min(totalFacBills, settlement * (1 / 3));
           proPool = 0;
-        } else {
-          const cap40 = settlement * 0.4;
-          const initial20Cap = settlement * 0.2;
+        } else if (hasPro && hasFac) {
+          const aggregateCap = settlement * 0.4;
+          const initialClassCap = settlement * 0.2;
 
-          if (grandTotalBills <= cap40) {
+          if (grandTotalBills <= aggregateCap) {
             proPool = totalProBills;
             facPool = totalFacBills;
           } else {
-            let proCap = initial20Cap;
-            let facCap = initial20Cap;
+            let proCap = initialClassCap;
+            let facCap = initialClassCap;
 
-            if (totalProBills < initial20Cap) {
-              facCap += initial20Cap - totalProBills;
-              proCap = totalProBills;
-            } else if (totalFacBills < initial20Cap) {
-              proCap += initial20Cap - totalFacBills;
-              facCap = totalFacBills;
+            if (totalProBills < initialClassCap) {
+              facCap += initialClassCap - totalProBills;
+            } else if (totalFacBills < initialClassCap) {
+              proCap += initialClassCap - totalFacBills;
             }
 
             proPool = Math.min(totalProBills, proCap);
@@ -879,6 +1009,7 @@
         const container = document.getElementById("email-preview-container");
         const patientName = document.getElementById("patient-name").value;
         const caseName = document.getElementById("case-name").value;
+        const code = selectedClinic.code;
 
         let ionHeaderHTML = "";
         if (
@@ -893,46 +1024,124 @@
             parseFloat(document.getElementById("ion-payments").value) || 0;
           const adj =
             parseFloat(document.getElementById("ion-adjustments").value) || 0;
-          const proProposal =
+          let proProposal =
             parseFloat(document.getElementById("ion-pro-proposal").value) || 0;
-          const facProposal =
+          let facProposal =
             parseFloat(document.getElementById("ion-fac-proposal").value) || 0;
           const services = document.getElementById("ion-services").value;
 
+          let clinicProProrataSum = 0;
+          let clinicFacProrataSum = 0;
+          let checkedProOfferSum = 0;
+          let checkedFacOfferSum = 0;
+
+          liens.forEach((l) => {
+            if (l.isTarget) {
+              const offerVal =
+                l.offer !== null && l.offer !== undefined
+                  ? parseFloat(l.offer)
+                  : 0;
+              if (l.category === "professional") {
+                clinicProProrataSum += proRataMap[l.id] || 0;
+                checkedProOfferSum += offerVal;
+              } else if (l.category === "provider") {
+                clinicFacProrataSum += proRataMap[l.id] || 0;
+                checkedFacOfferSum += offerVal;
+              }
+            }
+          });
+
+          if (proProposal === 0 && checkedProOfferSum > 0)
+            proProposal = checkedProOfferSum;
+          if (facProposal === 0 && checkedFacOfferSum > 0)
+            facProposal = checkedFacOfferSum;
+
+          let offerPctText = "Offers are pro rata.";
+
+          if (selectedClinic.type === "dual") {
+            const proPct =
+              clinicProProrataSum > 0
+                ? Math.round((proProposal / clinicProProrataSum) * 100)
+                : 0;
+            const facPct =
+              clinicFacProrataSum > 0
+                ? Math.round((facProposal / clinicFacProrataSum) * 100)
+                : 0;
+
+            if (proProposal > 0 || facProposal > 0) {
+              offerPctText = `Offer for PRO is ${proPct}% of pro rata and offer for FAC is ${facPct}% of pro rata.`;
+            }
+          } else if (selectedClinic.type === "fac") {
+            const facPct =
+              clinicFacProrataSum > 0
+                ? Math.round((facProposal / clinicFacProrataSum) * 100)
+                : 0;
+            if (facProposal > 0)
+              offerPctText = `Offer for FAC is ${facPct}% of pro rata.`;
+          } else {
+            const proPct =
+              clinicProProrataSum > 0
+                ? Math.round((proProposal / clinicProProrataSum) * 100)
+                : 0;
+            if (proProposal > 0)
+              offerPctText = `Offer is ${proPct}% of pro rata.`;
+          }
+
+          let balanceDetailsHTML = "";
+          if (selectedClinic.type === "dual") {
+            balanceDetailsHTML = `
+              <div>${code} PRO Balance: ${formatUSD(proBal)}</div>
+              <div>${code} FAC Balance: ${formatUSD(facBal)}</div>
+              <div>${code} Payments: ${formatUSD(payments)}</div>
+              <div>${code} Adjustments: ${formatUSD(adj)}</div>
+              <div>${code} PRO Proposal: ${formatUSD(proProposal)}</div>
+              <div>${code} FAC Proposal: ${formatUSD(facProposal)}</div>
+            `;
+          } else if (selectedClinic.type === "fac") {
+            balanceDetailsHTML = `
+              <div>${code} FAC Balance: ${formatUSD(facBal)}</div>
+              <div>${code} Payments: ${formatUSD(payments)}</div>
+              <div>${code} Adjustments: ${formatUSD(adj)}</div>
+              <div>${code} FAC Proposal: ${formatUSD(facProposal)}</div>
+            `;
+          } else {
+            balanceDetailsHTML = `
+              <div>${code} PRO Balance: ${formatUSD(proBal)}</div>
+              <div>${code} Payments: ${formatUSD(payments)}</div>
+              <div>${code} Adjustments: ${formatUSD(adj)}</div>
+              <div>${code} PRO Proposal: ${formatUSD(proProposal)}</div>
+            `;
+          }
+
           ionHeaderHTML = `
-        <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
-          ${patientName ? `<div><strong>Patient: ${patientName}</strong></div>` : ""}
-          <div><strong>Case: ${caseName}</strong></div>
-          <div>ION PRO Balance: ${formatUSD(proBal)}</div>
-          <div>ION FAC Balance: ${formatUSD(facBal)}</div>
-          <div>ION Payments: ${formatUSD(payments)}</div>
-          <div>ION Adjustments: ${formatUSD(adj)}</div>
-          <div>ION PRO Proposal: ${formatUSD(proProposal)}</div>
-          <div>ION FAC Proposal: ${formatUSD(facProposal)}</div>
-          <div>${services}</div>
-          <div style="margin-top: 4px;">
-            *Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. Offers are pro rata.
-          </div>
-        </div>
-      `;
+            <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
+              ${patientName ? `<div><strong>Patient: ${patientName}</strong></div>` : ""}
+              ${caseName ? `<div><strong>Case: ${caseName}</strong></div>` : ""}
+              ${balanceDetailsHTML}
+              ${services ? `<div>${services}</div>` : ""}
+              <div style="margin-top: 4px;">
+                *Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. ${offerPctText}
+              </div>
+            </div>
+          `;
         }
 
         const summaryTableHTML = `
-      <table style="border-collapse: collapse; width: 220px; font-size: 11px; font-family: Arial, sans-serif; margin-bottom: 12px; border: 1px solid #000;">
-        <tr>
-          <td style="padding: 2px 6px; font-weight: bold; border: 1px solid #000;">TOTAL SETTLMENT</td>
-          <td style="padding: 2px 6px; font-weight: bold; text-align: right; border: 1px solid #000; background-color: #dbeafe;">${settlement.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        </tr>
-        <tr>
-          <td style="padding: 2px 6px; border: 1px solid #000;">Amount to PRO</td>
-          <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${proPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        </tr>
-        <tr>
-          <td style="padding: 2px 6px; border: 1px solid #000;">Amount to FAC</td>
-          <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${facPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        </tr>
-      </table>
-    `;
+          <table style="border-collapse: collapse; width: 220px; font-size: 11px; font-family: Arial, sans-serif; margin-bottom: 12px; border: 1px solid #000;">
+            <tr>
+              <td style="padding: 2px 6px; font-weight: bold; border: 1px solid #000;">TOTAL SETTLMENT</td>
+              <td style="padding: 2px 6px; font-weight: bold; text-align: right; border: 1px solid #000; background-color: #dbeafe;">${settlement.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 6px; border: 1px solid #000;">Amount to PRO</td>
+              <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${proPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 6px; border: 1px solid #000;">Amount to FAC</td>
+              <td style="padding: 2px 6px; text-align: right; border: 1px solid #000;">$ ${facPool.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+          </table>
+        `;
 
         const proItems = liens.filter((l) => l.category === "professional");
         const facItems = liens.filter((l) => l.category === "provider");
@@ -963,10 +1172,10 @@
             }
 
             proCellHTML = `
-          <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name} ${pro.isTarget ? "★" : ""}</td>
-          <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${pro.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        `;
+              <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name} ${pro.isTarget ? "★" : ""}</td>
+              <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${pro.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            `;
           }
 
           let facCellHTML = `<td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px; border-right: 1px solid #000;"></td><td style="padding: 2px 6px;"></td>`;
@@ -986,45 +1195,45 @@
             }
 
             facCellHTML = `
-          <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name} ${fac.isTarget ? "★" : ""}</td>
-          <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${fac.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td style="padding: 2px 6px; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        `;
+              <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name} ${fac.isTarget ? "★" : ""}</td>
+              <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${fac.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="padding: 2px 6px; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            `;
           }
 
           rowsHTML += `<tr style="border-bottom: 1px solid #000;">${proCellHTML}${facCellHTML}</tr>`;
         }
 
         container.innerHTML = `
-      ${ionHeaderHTML}
-      ${summaryTableHTML}
+          ${ionHeaderHTML}
+          ${summaryTableHTML}
 
-      <table style="border-collapse: collapse; max-width: 680px; width: 100%; font-size: 11px; font-family: Arial, sans-serif; border: 1px solid #000;">
-        <thead>
-          <tr style="background-color: #f1f5f9; border-bottom: 1px solid #000; font-weight: bold;">
-            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">PRO CLINICS</th>
-            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
-            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">PRO RATA</th>
-            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">FAC CLINICS</th>
-            <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
-            <th style="padding: 3px 6px; text-align: right; width: 85px;">PRO RATA</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHTML}
-        </tbody>
-        <tfoot>
-          <tr style="font-weight: bold; border-top: 1px solid #000; background-color: #f8fafc;">
-            <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
-            <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalProBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${proTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
-            <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalFacBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="padding: 3px 6px; text-align: right;">$ ${facTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          </tr>
-        </tfoot>
-      </table>
-    `;
+          <table style="border-collapse: collapse; max-width: 680px; width: 100%; font-size: 11px; font-family: Arial, sans-serif; border: 1px solid #000;">
+            <thead>
+              <tr style="background-color: #f1f5f9; border-bottom: 1px solid #000; font-weight: bold;">
+                <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">PRO CLINICS</th>
+                <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
+                <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">PRO RATA</th>
+                <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: left; width: 170px;">FAC CLINICS</th>
+                <th style="padding: 3px 6px; border-right: 1px solid #000; text-align: right; width: 85px;">AR</th>
+                <th style="padding: 3px 6px; text-align: right; width: 85px;">PRO RATA</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHTML}
+            </tbody>
+            <tfoot>
+              <tr style="font-weight: bold; border-top: 1px solid #000; background-color: #f8fafc;">
+                <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
+                <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalProBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${proTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding: 3px 6px; border-right: 1px solid #000;">TOTAL</td>
+                <td style="padding: 3px 6px; border-right: 1px solid #000; text-align: right;">$ ${totalFacBills.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding: 3px 6px; text-align: right;">$ ${facTotalOffered.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
       }
 
       function exportToCSV() {
@@ -1097,6 +1306,7 @@
               document.getElementById("settlement").value = importedSettlement;
             liens = importedLiens;
             renderInputs();
+            syncTableToHeader();
             calculate();
             alert("CSV file successfully imported!");
           }
@@ -1118,6 +1328,7 @@
         savedCases[nameInput] = {
           patient: patientInput,
           name: nameInput,
+          facility: selectedClinic.code,
           settlement:
             parseFloat(document.getElementById("settlement").value) || 0,
           liens: JSON.parse(JSON.stringify(liens)),
@@ -1135,8 +1346,13 @@
         document.getElementById("patient-name").value = c.patient || "";
         document.getElementById("case-name").value = c.name;
         document.getElementById("settlement").value = c.settlement;
+        if (c.facility) {
+          document.getElementById("facility-dropdown").value = c.facility;
+          handleFacilityChange(c.facility);
+        }
         liens = JSON.parse(JSON.stringify(c.liens));
         renderInputs();
+        syncTableToHeader();
         calculate();
       }
 
@@ -1177,35 +1393,42 @@
             "py-1.5 px-2 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition-colors rounded";
           div.onclick = () => loadCase(k);
           div.innerHTML = `
-        <div>
-          <div class="font-semibold text-slate-800">${c.patient ? c.patient + " - " : ""}${c.name}</div>
-          <div class="text-[10px] text-slate-400">${formatUSD(c.settlement)} • ${c.updatedAt}</div>
-        </div>
-        <button onclick="deleteCase('${k}', event)" class="text-slate-300 hover:text-red-500 p-1">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      `;
+            <div>
+              <div class="font-semibold text-slate-800">${c.patient ? c.patient + " - " : ""}${c.name}</div>
+              <div class="text-[10px] text-slate-400">${formatUSD(c.settlement)} • ${c.updatedAt}</div>
+            </div>
+            <button onclick="deleteCase('${k}', event)" class="text-slate-300 hover:text-red-500 p-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          `;
           container.appendChild(div);
         });
       }
 
       async function copyTableForEmail() {
-        const htmlContent = document.getElementById(
-          "email-preview-container",
-        ).innerHTML;
-        const caseName = document.getElementById("case-name").value;
+        const container = document.getElementById("email-preview-container");
+        const htmlContent = container.innerHTML;
+        const textContent = container.innerText;
 
         try {
-          const blobHtml = new Blob([htmlContent], { type: "text/html" });
-          const blobText = new Blob(
-            [`Settlement Pro Rata Proposal - ${caseName}`],
-            { type: "text/plain" },
-          );
-          const clipboardItem = new ClipboardItem({
-            "text/html": blobHtml,
-            "text/plain": blobText,
-          });
-          await navigator.clipboard.write([clipboardItem]);
+          if (navigator.clipboard && window.ClipboardItem) {
+            const blobHtml = new Blob([htmlContent], { type: "text/html" });
+            const blobText = new Blob([textContent], { type: "text/plain" });
+            const clipboardItem = new ClipboardItem({
+              "text/html": blobHtml,
+              "text/plain": blobText,
+            });
+            await navigator.clipboard.write([clipboardItem]);
+          } else {
+            const range = document.execCommand ? document.createRange() : null;
+            if (range) {
+              range.selectNode(container);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand("copy");
+              window.getSelection().removeAllRanges();
+            }
+          }
 
           const btnText = document.getElementById("copy-btn-text");
           btnText.innerText = "Copied to Clipboard!";
