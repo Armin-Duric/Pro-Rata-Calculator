@@ -39,11 +39,9 @@
         </div>
       </header>
 
-      <!-- Main Workspace Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column: Case Parameters & Dynamic Clinic Block -->
         <div class="space-y-6 lg:col-span-1">
-          <!-- Case Details -->
+          <!-- Detalji o slucajevima -->
           <div
             class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4"
           >
@@ -63,6 +61,18 @@
                 value=""
                 oninput="calculate()"
                 placeholder="e.g. John Doe"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >DOI</label
+              >
+              <input
+                type="date"
+                id="doi"
+                value=""
+                oninput="calculate()"
                 class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -102,7 +112,7 @@
               </div>
             </div>
 
-            <!-- Save & CSV Controls -->
+            <!-- Snimanje i printanje reporta -->
             <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
               <button
                 onclick="saveCurrentCase()"
@@ -160,7 +170,6 @@
             </div>
           </div>
 
-          <!-- Dynamic Clinic Specific Form -->
           <div
             id="ion-config-box"
             class="bg-amber-50/60 p-5 rounded-xl shadow-sm border border-amber-200 space-y-3"
@@ -194,7 +203,7 @@
               />
             </div>
 
-            <!-- Clinic Select Dropdown -->
+            <!-- Dropdown lista klinika/provajdera -->
             <div>
               <label class="block text-xs font-semibold text-amber-900 mb-1"
                 >Select Clinic / Facility</label
@@ -204,7 +213,7 @@
                 onchange="handleFacilityChange(this.value)"
                 class="w-full p-1.5 bg-white border border-slate-300 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
-                <!-- Populated dynamically -->
+                <!-- Popunjava se automatski -->
               </select>
             </div>
 
@@ -246,30 +255,63 @@
                 </div>
               </div>
 
+              <!-- Payment logika -->
               <div class="grid grid-cols-2 gap-2">
-                <div>
+                <div id="pro-payments-container">
                   <label
-                    id="lbl-payments"
+                    id="lbl-pro-payments"
                     class="block font-semibold text-slate-700 mb-0.5"
-                    >Payments ($)</label
+                    >PRO Payments ($)</label
                   >
                   <input
                     type="number"
-                    id="ion-payments"
+                    id="ion-pro-payments"
                     value="0.00"
                     oninput="calculate()"
                     class="w-full p-1.5 bg-white border border-slate-300 rounded"
                   />
                 </div>
-                <div>
+                <div id="fac-payments-container">
                   <label
-                    id="lbl-adjustments"
+                    id="lbl-fac-payments"
                     class="block font-semibold text-slate-700 mb-0.5"
-                    >Adjustments ($)</label
+                    >FAC Payments ($)</label
                   >
                   <input
                     type="number"
-                    id="ion-adjustments"
+                    id="ion-fac-payments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+              </div>
+
+              <!-- Adjustment logika -->
+              <div class="grid grid-cols-2 gap-2">
+                <div id="pro-adjustments-container">
+                  <label
+                    id="lbl-pro-adjustments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Adjustments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-adjustments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+                <div id="fac-adjustments-container">
+                  <label
+                    id="lbl-fac-adjustments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Adjustments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-adjustments"
                     value="0.00"
                     oninput="calculate()"
                     class="w-full p-1.5 bg-white border border-slate-300 rounded"
@@ -330,7 +372,7 @@
             </div>
           </div>
 
-          <!-- Saved Cases Manager -->
+          <!-- Logika za snimanje kalkujacija -->
           <div
             class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3"
           >
@@ -486,7 +528,7 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H8m0 0a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H8m0 0a2 2 0 012 2h2a2 2 0 002-2M8 5a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
                   />
                 </svg>
                 <span id="copy-btn-text">Copy Proposal for Email</span>
@@ -596,6 +638,18 @@
         const facBalContainer = document.getElementById(
           "fac-balance-container",
         );
+        const proPayContainer = document.getElementById(
+          "pro-payments-container",
+        );
+        const facPayContainer = document.getElementById(
+          "fac-payments-container",
+        );
+        const proAdjContainer = document.getElementById(
+          "pro-adjustments-container",
+        );
+        const facAdjContainer = document.getElementById(
+          "fac-adjustments-container",
+        );
         const proPropContainer = document.getElementById(
           "pro-proposal-container",
         );
@@ -606,6 +660,10 @@
         if (selectedClinic.type === "dual") {
           proBalContainer.style.display = "block";
           facBalContainer.style.display = "block";
+          proPayContainer.style.display = "block";
+          facPayContainer.style.display = "block";
+          proAdjContainer.style.display = "block";
+          facAdjContainer.style.display = "block";
           proPropContainer.style.display = "block";
           facPropContainer.style.display = "block";
 
@@ -613,6 +671,14 @@
             `${selectedClinic.code} PRO Balance ($)`;
           document.getElementById("lbl-fac-balance").innerText =
             `${selectedClinic.code} FAC Balance ($)`;
+          document.getElementById("lbl-pro-payments").innerText =
+            `${selectedClinic.code} PRO Payments ($)`;
+          document.getElementById("lbl-fac-payments").innerText =
+            `${selectedClinic.code} FAC Payments ($)`;
+          document.getElementById("lbl-pro-adjustments").innerText =
+            `${selectedClinic.code} PRO Adjustments ($)`;
+          document.getElementById("lbl-fac-adjustments").innerText =
+            `${selectedClinic.code} FAC Adjustments ($)`;
           document.getElementById("lbl-pro-proposal").innerText =
             `${selectedClinic.code} PRO Proposal ($)`;
           document.getElementById("lbl-fac-proposal").innerText =
@@ -620,29 +686,40 @@
         } else if (selectedClinic.type === "fac") {
           proBalContainer.style.display = "none";
           facBalContainer.style.display = "block";
+          proPayContainer.style.display = "none";
+          facPayContainer.style.display = "block";
+          proAdjContainer.style.display = "none";
+          facAdjContainer.style.display = "block";
           proPropContainer.style.display = "none";
           facPropContainer.style.display = "block";
 
           document.getElementById("lbl-fac-balance").innerText =
             `${selectedClinic.code} FAC Balance ($)`;
+          document.getElementById("lbl-fac-payments").innerText =
+            `${selectedClinic.code} FAC Payments ($)`;
+          document.getElementById("lbl-fac-adjustments").innerText =
+            `${selectedClinic.code} FAC Adjustments ($)`;
           document.getElementById("lbl-fac-proposal").innerText =
             `${selectedClinic.code} FAC Proposal ($)`;
         } else {
           proBalContainer.style.display = "block";
           facBalContainer.style.display = "none";
+          proPayContainer.style.display = "block";
+          facPayContainer.style.display = "none";
+          proAdjContainer.style.display = "block";
+          facAdjContainer.style.display = "none";
           proPropContainer.style.display = "block";
           facPropContainer.style.display = "none";
 
           document.getElementById("lbl-pro-balance").innerText =
             `${selectedClinic.code} PRO Balance ($)`;
+          document.getElementById("lbl-pro-payments").innerText =
+            `${selectedClinic.code} PRO Payments ($)`;
+          document.getElementById("lbl-pro-adjustments").innerText =
+            `${selectedClinic.code} PRO Adjustments ($)`;
           document.getElementById("lbl-pro-proposal").innerText =
             `${selectedClinic.code} PRO Proposal ($)`;
         }
-
-        document.getElementById("lbl-payments").innerText =
-          `${selectedClinic.code} Payments ($)`;
-        document.getElementById("lbl-adjustments").innerText =
-          `${selectedClinic.code} Adjustments ($)`;
 
         syncTableToHeader();
         calculate();
@@ -1008,6 +1085,7 @@
       ) {
         const container = document.getElementById("email-preview-container");
         const patientName = document.getElementById("patient-name").value;
+        const doi = document.getElementById("doi").value;
         const caseName = document.getElementById("case-name").value;
         const code = selectedClinic.code;
 
@@ -1017,17 +1095,26 @@
           document.getElementById("ion-enable-toggle").checked
         ) {
           const proBal =
-            parseFloat(document.getElementById("ion-pro-balance").value) || 0;
+            parseFloat(document.getElementById("ion-pro-balance")?.value) || 0;
           const facBal =
-            parseFloat(document.getElementById("ion-fac-balance").value) || 0;
-          const payments =
-            parseFloat(document.getElementById("ion-payments").value) || 0;
-          const adj =
-            parseFloat(document.getElementById("ion-adjustments").value) || 0;
+            parseFloat(document.getElementById("ion-fac-balance")?.value) || 0;
+
+          const proPayments =
+            parseFloat(document.getElementById("ion-pro-payments")?.value) || 0;
+          const facPayments =
+            parseFloat(document.getElementById("ion-fac-payments")?.value) || 0;
+
+          const proAdj =
+            parseFloat(document.getElementById("ion-pro-adjustments")?.value) ||
+            0;
+          const facAdj =
+            parseFloat(document.getElementById("ion-fac-adjustments")?.value) ||
+            0;
+
           let proProposal =
-            parseFloat(document.getElementById("ion-pro-proposal").value) || 0;
+            parseFloat(document.getElementById("ion-pro-proposal")?.value) || 0;
           let facProposal =
-            parseFloat(document.getElementById("ion-fac-proposal").value) || 0;
+            parseFloat(document.getElementById("ion-fac-proposal")?.value) || 0;
           const services = document.getElementById("ion-services").value;
 
           let clinicProProrataSum = 0;
@@ -1092,23 +1179,25 @@
             balanceDetailsHTML = `
               <div>${code} PRO Balance: ${formatUSD(proBal)}</div>
               <div>${code} FAC Balance: ${formatUSD(facBal)}</div>
-              <div>${code} Payments: ${formatUSD(payments)}</div>
-              <div>${code} Adjustments: ${formatUSD(adj)}</div>
+              <div>${code} PRO Payments: ${formatUSD(proPayments)}</div>
+              <div>${code} FAC Payments: ${formatUSD(facPayments)}</div>
+              <div>${code} PRO Adjustments: ${formatUSD(proAdj)}</div>
+              <div>${code} FAC Adjustments: ${formatUSD(facAdj)}</div>
               <div>${code} PRO Proposal: ${formatUSD(proProposal)}</div>
               <div>${code} FAC Proposal: ${formatUSD(facProposal)}</div>
             `;
           } else if (selectedClinic.type === "fac") {
             balanceDetailsHTML = `
               <div>${code} FAC Balance: ${formatUSD(facBal)}</div>
-              <div>${code} Payments: ${formatUSD(payments)}</div>
-              <div>${code} Adjustments: ${formatUSD(adj)}</div>
+              <div>${code} FAC Payments: ${formatUSD(facPayments)}</div>
+              <div>${code} FAC Adjustments: ${formatUSD(facAdj)}</div>
               <div>${code} FAC Proposal: ${formatUSD(facProposal)}</div>
             `;
           } else {
             balanceDetailsHTML = `
               <div>${code} PRO Balance: ${formatUSD(proBal)}</div>
-              <div>${code} Payments: ${formatUSD(payments)}</div>
-              <div>${code} Adjustments: ${formatUSD(adj)}</div>
+              <div>${code} PRO Payments: ${formatUSD(proPayments)}</div>
+              <div>${code} PRO Adjustments: ${formatUSD(proAdj)}</div>
               <div>${code} PRO Proposal: ${formatUSD(proProposal)}</div>
             `;
           }
@@ -1116,6 +1205,7 @@
           ionHeaderHTML = `
             <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
               ${patientName ? `<div><strong>Patient: ${patientName}</strong></div>` : ""}
+              ${doi ? `<div><strong>DOI: ${doi}</strong></div>` : ""}
               ${caseName ? `<div><strong>Case: ${caseName}</strong></div>` : ""}
               ${balanceDetailsHTML}
               ${services ? `<div>${services}</div>` : ""}
@@ -1159,20 +1249,21 @@
           if (pro) {
             const offer = proRataMap[pro.id] || 0;
             proTotalOffered += offer;
-            let bgStyle = pro.isTarget
-              ? "background-color: #fff59d; font-weight: bold;"
-              : "";
+            let bgStyle = "";
 
-            if (pro.offer !== null && pro.offer > 0 && offer > 0) {
-              const ratio = pro.offer / offer;
-              if (ratio >= 0.999)
-                bgStyle = "background-color: #d1fae5; font-weight: bold;";
-              else if (ratio >= 0.8)
-                bgStyle = "background-color: #fef3c7; font-weight: bold;";
+            if (pro.isTarget) {
+              bgStyle = "background-color: #fff59d; font-weight: bold;";
+              if (pro.offer !== null && pro.offer > 0 && offer > 0) {
+                const ratio = pro.offer / offer;
+                if (ratio >= 0.999)
+                  bgStyle = "background-color: #d1fae5; font-weight: bold;";
+                else if (ratio >= 0.8)
+                  bgStyle = "background-color: #fef3c7; font-weight: bold;";
+              }
             }
 
             proCellHTML = `
-              <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name} ${pro.isTarget ? "★" : ""}</td>
+              <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${pro.name}</td>
               <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${pro.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             `;
@@ -1182,20 +1273,21 @@
           if (fac) {
             const offer = proRataMap[fac.id] || 0;
             facTotalOffered += offer;
-            let bgStyle = fac.isTarget
-              ? "background-color: #fff59d; font-weight: bold;"
-              : "";
+            let bgStyle = "";
 
-            if (fac.offer !== null && fac.offer > 0 && offer > 0) {
-              const ratio = fac.offer / offer;
-              if (ratio >= 0.999)
-                bgStyle = "background-color: #d1fae5; font-weight: bold;";
-              else if (ratio >= 0.8)
-                bgStyle = "background-color: #fef3c7; font-weight: bold;";
+            if (fac.isTarget) {
+              bgStyle = "background-color: #fff59d; font-weight: bold;";
+              if (fac.offer !== null && fac.offer > 0 && offer > 0) {
+                const ratio = fac.offer / offer;
+                if (ratio >= 0.999)
+                  bgStyle = "background-color: #d1fae5; font-weight: bold;";
+                else if (ratio >= 0.8)
+                  bgStyle = "background-color: #fef3c7; font-weight: bold;";
+              }
             }
 
             facCellHTML = `
-              <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name} ${fac.isTarget ? "★" : ""}</td>
+              <td style="padding: 2px 6px; border-right: 1px solid #000; ${bgStyle}">${fac.name}</td>
               <td style="padding: 2px 6px; border-right: 1px solid #000; text-align: right; ${bgStyle}">$ ${fac.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               <td style="padding: 2px 6px; text-align: right; font-weight: bold; ${bgStyle}">$ ${offer.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             `;
@@ -1319,6 +1411,7 @@
         const patientInput = document
           .getElementById("patient-name")
           .value.trim();
+        const doiInput = document.getElementById("doi").value;
 
         if (!nameInput) {
           alert("Please enter a Case Name.");
@@ -1327,6 +1420,7 @@
 
         savedCases[nameInput] = {
           patient: patientInput,
+          doi: doiInput,
           name: nameInput,
           facility: selectedClinic.code,
           settlement:
@@ -1344,6 +1438,7 @@
         const c = savedCases[key];
         if (!c) return;
         document.getElementById("patient-name").value = c.patient || "";
+        document.getElementById("doi").value = c.doi || "";
         document.getElementById("case-name").value = c.name;
         document.getElementById("settlement").value = c.settlement;
         if (c.facility) {
