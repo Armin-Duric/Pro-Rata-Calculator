@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Illinois Medical Lien Pro Rata Calculator (770 ILCS 23)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-100 text-slate-800 p-4 md:p-8 min-h-screen">
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- Header -->
+      <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900">
+              Illinois Medical Lien Calculator
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">
+              Pursuant to the Illinois Health Care Services Lien Act (770 ILCS
+              23/10)
+            </p>
+            <p class="text-xs text-slate-400 mt-1">
+              Does not cover workers' compensation, Medicare/Medicaid or
+              ERISA/self-funded plan claims. Attorney review required.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              id="rule-badge"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"
+            >
+              40% Aggregate Cap Rule
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-6 lg:col-span-1">
+          <!-- Detalji o slucajevima -->
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4"
+          >
+            <h2
+              class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-2"
+            >
+              Case Info
+            </h2>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >Patient Name</label
+              >
+              <input
+                type="text"
+                id="patient-name"
+                value=""
+                oninput="calculate()"
+                placeholder="e.g. John Doe"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >DOI</label
+              >
+              <input
+                type="date"
+                id="doi"
+                value=""
+                oninput="calculate()"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >Attorney / Case Reference</label
+              >
+              <input
+                type="text"
+                id="case-name"
+                value=""
+                oninput="calculate()"
+                placeholder="e.g. Reference Code"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1"
+                >Gross Settlement Amount ($)</label
+              >
+              <div class="relative">
+                <span
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold"
+                  >$</span
+                >
+                <input
+                  type="number"
+                  id="settlement"
+                  value="0"
+                  step="100"
+                  min="0"
+                  oninput="calculate()"
+                  class="w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-lg text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <!-- Snimanje i printanje reporta -->
+            <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+              <button
+                onclick="saveCurrentCase()"
+                class="py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
+                </svg>
+                Save Case
+              </button>
+              <button
+                onclick="exportToCSV()"
+                class="py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                Export CSV
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <label
+                class="w-full cursor-pointer py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors text-center block"
+              >
+                Import Cases from CSV
+                <input
+                  type="file"
+                  id="csv-file-input"
+                  accept=".csv"
+                  onchange="importFromCSV(event)"
+                  class="hidden"
+                />
+              </label>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <button onclick="resetCase()" class="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors">New Case</button>
+              <button onclick="runSelfTest()" class="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors">Self-Test</button>
+              <button onclick="clearAllData()" class="py-1.5 px-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium text-xs rounded-lg transition-colors">Clear Data</button>
+            </div>
+            <p class="text-[10px] leading-snug text-slate-400">
+              Saved cases are stored unencrypted in this browser only and may
+              contain PHI. Avoid shared computers and use Clear Data when finished.
+            </p>
+          </div>
+
+          <div
+            id="ion-config-box"
+            class="bg-amber-50/60 p-5 rounded-xl shadow-sm border border-amber-200 space-y-3"
+          >
+            <div
+              class="flex justify-between items-center border-b border-amber-200/80 pb-2"
+            >
+              <h2
+                id="facility-header-title"
+                class="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1"
+              >
+                <svg
+                  class="w-4 h-4 text-amber-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+                Clinic Header Settings
+              </h2>
+              <input
+                type="checkbox"
+                id="ion-enable-toggle"
+                checked
+                onchange="toggleIONBox(this.checked)"
+                class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4"
+              />
+            </div>
+
+            <!-- Clean & Stylized Dropdown -->
+            <div>
+              <label class="block text-xs font-semibold text-amber-900 mb-1"
+                >Select Clinic / Facility</label
+              >
+              <select
+                id="facility-dropdown"
+                onchange="handleFacilityChange(this.value)"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 cursor-pointer"
+              >
+                <!-- Popunjava se automatski -->
+              </select>
+            </div>
+
+            <div id="ion-fields-container" class="space-y-2 text-xs">
+              <div class="grid grid-cols-2 gap-2">
+                <div id="pro-balance-container">
+                  <label
+                    id="lbl-pro-balance"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Balance ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-balance"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('pro');
+                      calculate();
+                    "
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-semibold text-slate-800"
+                  />
+                </div>
+                <div id="fac-balance-container">
+                  <label
+                    id="lbl-fac-balance"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Balance ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-balance"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('fac');
+                      calculate();
+                    "
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <!-- Payment logika -->
+              <div class="grid grid-cols-2 gap-2">
+                <div id="pro-payments-container">
+                  <label
+                    id="lbl-pro-payments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Payments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-payments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+                <div id="fac-payments-container">
+                  <label
+                    id="lbl-fac-payments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Payments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-payments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+              </div>
+
+              <!-- Adjustment logika -->
+              <div class="grid grid-cols-2 gap-2">
+                <div id="pro-adjustments-container">
+                  <label
+                    id="lbl-pro-adjustments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Adjustments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-adjustments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+                <div id="fac-adjustments-container">
+                  <label
+                    id="lbl-fac-adjustments"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Adjustments ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-adjustments"
+                    value="0.00"
+                    oninput="calculate()"
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div id="pro-proposal-container">
+                  <label
+                    id="lbl-pro-proposal"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >PRO Proposal ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-pro-proposal"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('pro');
+                      calculate();
+                    "
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-bold text-amber-800"
+                  />
+                </div>
+                <div id="fac-proposal-container">
+                  <label
+                    id="lbl-fac-proposal"
+                    class="block font-semibold text-slate-700 mb-0.5"
+                    >FAC Proposal ($)</label
+                  >
+                  <input
+                    type="number"
+                    id="ion-fac-proposal"
+                    value="0.00"
+                    oninput="
+                      syncHeaderToTable('fac');
+                      calculate();
+                    "
+                    class="w-full p-1.5 bg-white border border-slate-300 rounded font-bold text-amber-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-0.5"
+                  >Services / Notes</label
+                >
+                <input
+                  type="text"
+                  id="ion-services"
+                  value=""
+                  placeholder="e.g. Services rendered..."
+                  oninput="calculate()"
+                  class="w-full p-1.5 bg-white border border-slate-300 rounded"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Logika za snimanje kalkujacija -->
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3"
+          >
+            <div class="flex justify-between items-center">
+              <h2
+                class="text-sm font-bold uppercase tracking-wider text-slate-500"
+              >
+                Saved Cases
+              </h2>
+              <span
+                id="saved-count"
+                class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold"
+                >0</span
+              >
+            </div>
+
+            <input
+              type="text"
+              id="search-saved"
+              oninput="renderSavedCasesList()"
+              placeholder="Search cases..."
+              class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+
+            <div
+              id="saved-cases-list"
+              class="max-h-36 overflow-y-auto divide-y divide-slate-100 text-xs"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Medical Liens Table & Email Format -->
+        <div class="space-y-6 lg:col-span-2">
+          <!-- Medical Lien Inputs -->
+          <div
+            class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4"
+          >
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3"
+            >
+              <div>
+                <h2 class="text-base font-bold text-slate-900">
+                  Medical Liens & Negotiation Status
+                </h2>
+                <div class="flex items-center gap-3 mt-1 text-[11px]">
+                  <span
+                    class="inline-flex items-center gap-1 font-medium text-emerald-700"
+                    ><span
+                      class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"
+                    ></span>
+                    Green: ≥ 100% Pro Rata</span
+                  >
+                  <span
+                    class="inline-flex items-center gap-1 font-medium text-amber-700"
+                    ><span
+                      class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"
+                    ></span>
+                    Yellow: 80% - 99% Pro Rata</span
+                  >
+                </div>
+              </div>
+              <button
+                onclick="addLienRow()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Provider
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table
+                class="w-full text-left border-collapse border border-slate-200"
+              >
+                <thead>
+                  <tr
+                    class="border-b border-slate-200 text-[11px] uppercase text-slate-600 font-bold bg-slate-100"
+                  >
+                    <th
+                      class="py-2.5 px-2 w-10 text-center border-r border-slate-200"
+                    >
+                      Target
+                    </th>
+                    <th class="py-2.5 px-2 border-r border-slate-200">
+                      Provider Name
+                    </th>
+                    <th class="py-2.5 px-2 w-28 border-r border-slate-200">
+                      Category
+                    </th>
+                    <th class="py-2.5 px-2 w-28 border-r border-slate-200">
+                      AR Balance ($)
+                    </th>
+                    <th
+                      class="py-2.5 px-2 w-28 border-r border-slate-200 bg-blue-50/50 text-blue-900"
+                    >
+                      Pro Rata ($)
+                    </th>
+                    <th class="py-2.5 px-2 w-28 border-r border-slate-200">
+                      Offer Rec'd ($)
+                    </th>
+                    <th class="py-2.5 px-2 w-32 border-r border-slate-200">
+                      Status
+                    </th>
+                    <th class="py-2.5 px-2 w-8 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody id="lien-rows" class="divide-y divide-slate-200 text-sm">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Email Proposal Output -->
+          <div
+            class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4"
+          >
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4"
+            >
+              <div>
+                <h2 class="text-base font-bold text-slate-900">
+                  Email Proposal Output
+                </h2>
+                <p class="text-xs text-slate-500" id="calculation-status">
+                  Formatted for direct copy into email proposals.
+                </p>
+              </div>
+
+              <button
+                onclick="copyTableForEmail()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H8m0 0a2 2 0 012 2h2a2 2 0 002-2M8 5a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                  />
+                </svg>
+                <span id="copy-btn-text">Copy Proposal for Email</span>
+              </button>
+            </div>
+
+            <!-- Email Preview Output Box -->
+            <div
+              class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs font-sans space-y-4 overflow-x-auto"
+              id="email-preview-container"
+            >
+              <!-- Dynamic Content Injected Here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <datalist id="provider-options"></datalist>
+
+    <script>
+      const CLINICS = [
+        { code: "AFA", type: "pro" },
+        { code: "AMS", type: "pro" },
+        { code: "BBJC", type: "pro" },
+        { code: "BIM", type: "pro" },
+        { code: "BJC", type: "pro" },
+        { code: "BPT", type: "pro" },
+        { code: "BVPT", type: "pro" },
+        { code: "CNPT", type: "pro" },
+        { code: "CPA", type: "pro" },
+        { code: "CR", type: "pro" },
+        { code: "DSAO", type: "pro" },
+        { code: "GW", type: "pro" },
+        { code: "HPSC", type: "fac" },
+        { code: "IAS", type: "pro" },
+        { code: "ICA", type: "pro" },
+        { code: "ICI", type: "pro" },
+        { code: "IN", type: "pro" },
+        { code: "ION", type: "dual" },
+        { code: "ITC", type: "pro" },
+        { code: "MA", type: "pro" },
+        { code: "MCI", type: "pro" },
+        { code: "MCR", type: "pro" },
+        { code: "MK", type: "pro" },
+        { code: "MLIC", type: "pro" },
+        { code: "MMC", type: "pro" },
+        { code: "MPR", type: "pro" },
+        { code: "MRI MLA", type: "pro" },
+        { code: "MSP", type: "pro" },
+        { code: "MSS", type: "pro" },
+        { code: "MTP", type: "pro" },
+        { code: "NPC", type: "pro" },
+        { code: "NSPS", type: "fac" },
+        { code: "PC", type: "pro" },
+        { code: "PHS", type: "pro" },
+        { code: "PPP", type: "pro" },
+        { code: "RRA", type: "pro" },
+        { code: "SM", type: "pro" },
+        { code: "SSPT", type: "pro" },
+        { code: "UN", type: "pro" },
+        { code: "VSS", type: "fac" },
+        { code: "WSPT", type: "pro" },
+        { code: "XR", type: "pro" },
+      ];
+
+      let selectedClinic = CLINICS[0];
+      const STATUSES = ["Proposal Received", "Under Review", "Sent to Clinic", "Clinic Approved", "Accepted", "Declined / Countered"];
+      const STATUS_MAP = { "Proposal Received": "Proposal Received", "Offer Sent": "Under Review", "Doctor Accepted": "Clinic Approved", "Counter-Offer Received": "Declined / Countered", "Rejected": "Declined / Countered" };
+
+      function safeLoad(key, fallback) {
+        try {
+          const v = JSON.parse(localStorage.getItem(key));
+          return v === null || v === undefined ? fallback : v;
+        } catch (e) {
+          console.warn("Could not read " + key, e);
+          return fallback;
+        }
+      }
+      function safeSave(key, val) {
+        try {
+          localStorage.setItem(key, JSON.stringify(val));
+          return true;
+        } catch (e) {
+          alert("Could not write to browser storage (it may be full or disabled).");
+          return false;
+        }
+      }
+      function escapeHtml(v) {
+        return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      }
+      function uid() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      }
+      function toCents(v) {
+        return Math.round(Math.max(0, parseFloat(v) || 0) * 100);
+      }
+      function fmtDate(iso) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+        return m ? `${m[2]}/${m[3]}/${m[1]}` : iso || "";
+      }
+      function matchesClinic(name, code) {
+        const n = (name || "").trim().toLowerCase();
+        const c = code.toLowerCase();
+        return n === c || (n.startsWith(c) && !/[a-z0-9]/.test(n.charAt(c.length)));
+      }
+      function normalizeCases(obj) {
+        const out = {};
+        if (!obj || typeof obj !== "object" || Array.isArray(obj)) return out;
+        Object.keys(obj).forEach((k) => {
+          const c = obj[k];
+          if (!c || typeof c !== "object") return;
+          c.id = c.id || k;
+          if (!Array.isArray(c.liens)) c.liens = [];
+          out[c.id] = c;
+        });
+        return out;
+      }
+
+      let providerDirectory = safeLoad("il_provider_directory", []);
+      if (!Array.isArray(providerDirectory)) providerDirectory = [];
+      providerDirectory = providerDirectory.filter((p) => p && typeof p.name === "string");
+      let savedCases = normalizeCases(safeLoad("il_saved_cases", {}));
+      let currentCaseId = null;
+      let liens = [];
+      let ionEnabled = true;
+
+      function init() {
+        populateFacilityDropdown();
+        updateProviderDatalist();
+        renderSavedCasesList();
+        renderInputs();
+        calculate();
+      }
+
+      function populateFacilityDropdown() {
+        const select = document.getElementById("facility-dropdown");
+        select.innerHTML = "";
+        CLINICS.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c.code;
+          opt.textContent = c.code;
+          select.appendChild(opt);
+        });
+        handleFacilityChange(CLINICS[0].code);
+      }
+
+      function handleFacilityChange(code, silent) {
+        const prevCode = selectedClinic ? selectedClinic.code : null;
+        selectedClinic = CLINICS.find((c) => c.code === code) || CLINICS[0];
+        if (!silent && prevCode && prevCode !== selectedClinic.code) {
+          liens.forEach((l) => {
+            l.isTarget = matchesClinic(l.name, selectedClinic.code);
+          });
+          ["pro-payments", "fac-payments", "pro-adjustments", "fac-adjustments"].forEach((id) => {
+            const el = document.getElementById("ion-" + id);
+            if (el) el.value = "0.00";
+          });
+          const sv = document.getElementById("ion-services");
+          if (sv) sv.value = "";
+        }
+
+        document.getElementById("facility-header-title").innerHTML = `
+          <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          ${selectedClinic.code} Header Settings
+        `;
+
+        const proBalContainer = document.getElementById(
+          "pro-balance-container",
+        );
+        const facBalContainer = document.getElementById(
+          "fac-balance-container",
+        );
+        const proPayContainer = document.getElementById(
+          "pro-payments-container",
+        );
+        const facPayContainer = document.getElementById(
+          "fac-payments-container",
+        );
+        const proAdjContainer = document.getElementById(
+          "pro-adjustments-container",
+        );
+        const facAdjContainer = document.getElementById(
+          "fac-adjustments-container",
+        );
+        const proPropContainer = document.getElementById(
+          "pro-proposal-container",
+        );
+        const facPropContainer = document.getElementById(
+          "fac-proposal-container",
+        );
+
+        if (selectedClinic.type === "dual") {
+          proBalContainer.style.display = "block";
+          facBalContainer.style.display = "block";
+          proPayContainer.style.display = "block";
+          facPayContainer.style.display = "block";
+          proAdjContainer.style.display = "block";
+          facAdjContainer.style.display = "block";
+          proPropContainer.style.display = "block";
+          facPropContainer.style.display = "block";
+
+          document.getElementById("lbl-pro-balance").innerText =
+            `${selectedClinic.code} PRO Balance ($)`;
+          document.getElementById("lbl-fac-balance").innerText =
+            `${selectedClinic.code} FAC Balance ($)`;
+          document.getElementById("lbl-pro-payments").innerText =
+            `${selectedClinic.code} PRO Payments ($)`;
+          document.getElementById("lbl-fac-payments").innerText =
+            `${selectedClinic.code} FAC Payments ($)`;
+          document.getElementById("lbl-pro-adjustments").innerText =
+            `${selectedClinic.code} PRO Adjustments ($)`;
+          document.getElementById("lbl-fac-adjustments").innerText =
+            `${selectedClinic.code} FAC Adjustments ($)`;
+          document.getElementById("lbl-pro-proposal").innerText =
+            `${selectedClinic.code} PRO Proposal ($)`;
+          document.getElementById("lbl-fac-proposal").innerText =
+            `${selectedClinic.code} FAC Proposal ($)`;
+        } else if (selectedClinic.type === "fac") {
+          proBalContainer.style.display = "none";
+          facBalContainer.style.display = "block";
+          proPayContainer.style.display = "none";
+          facPayContainer.style.display = "block";
+          proAdjContainer.style.display = "none";
+          facAdjContainer.style.display = "block";
+          proPropContainer.style.display = "none";
+          facPropContainer.style.display = "block";
+
+          document.getElementById("lbl-fac-balance").innerText =
+            `${selectedClinic.code} FAC Balance ($)`;
+          document.getElementById("lbl-fac-payments").innerText =
+            `${selectedClinic.code} FAC Payments ($)`;
+          document.getElementById("lbl-fac-adjustments").innerText =
+            `${selectedClinic.code} FAC Adjustments ($)`;
+          document.getElementById("lbl-fac-proposal").innerText =
+            `${selectedClinic.code} FAC Proposal ($)`;
+        } else {
+          proBalContainer.style.display = "block";
+          facBalContainer.style.display = "none";
+          proPayContainer.style.display = "block";
+          facPayContainer.style.display = "none";
+          proAdjContainer.style.display = "block";
+          facAdjContainer.style.display = "none";
+          proPropContainer.style.display = "block";
+          facPropContainer.style.display = "none";
+
+          document.getElementById("lbl-pro-balance").innerText =
+            `${selectedClinic.code} PRO Balance ($)`;
+          document.getElementById("lbl-pro-payments").innerText =
+            `${selectedClinic.code} PRO Payments ($)`;
+          document.getElementById("lbl-pro-adjustments").innerText =
+            `${selectedClinic.code} PRO Adjustments ($)`;
+          document.getElementById("lbl-pro-proposal").innerText =
+            `${selectedClinic.code} PRO Proposal ($)`;
+        }
+
+        syncTableToHeader();
+        renderInputs();
+        calculate();
+      }
+
+      function updateProviderDatalist() {
+        const datalist = document.getElementById("provider-options");
+        datalist.innerHTML = "";
+        providerDirectory.forEach((p) => {
+          const option = document.createElement("option");
+          option.value = p.name;
+          datalist.appendChild(option);
+        });
+        safeSave("il_provider_directory", providerDirectory);
+      }
+
+      function toggleIONBox(enabled) {
+        ionEnabled = enabled;
+        const container = document.getElementById("ion-fields-container");
+        if (enabled) {
+          container.classList.remove("opacity-40", "pointer-events-none");
+        } else {
+          container.classList.add("opacity-40", "pointer-events-none");
+        }
+        calculate();
+      }
+
+      /* -------------------------------------------------------------
+         AUTO-SYNC LOGIC (Table <-> Header)
+      ------------------------------------------------------------- */
+      function syncHeaderToTable(categoryType) {
+        const targetCategory =
+          categoryType === "fac" ? "provider" : "professional";
+        const valBal =
+          parseFloat(
+            document.getElementById(`ion-${categoryType}-balance`).value,
+          ) || 0;
+        const valProp =
+          parseFloat(
+            document.getElementById(`ion-${categoryType}-proposal`).value,
+          ) || 0;
+
+        let targetLien = liens.find(
+          (l) => l.isTarget && l.category === targetCategory,
+        );
+
+        if (!targetLien) {
+          targetLien = liens.find(
+            (l) =>
+              matchesClinic(l.name, selectedClinic.code) &&
+              l.category === targetCategory,
+          );
+        }
+
+        if (targetLien) {
+          targetLien.isTarget = true;
+          targetLien.amount = valBal;
+          targetLien.offer = valProp > 0 ? valProp : null;
+        } else if (valBal > 0 || valProp > 0) {
+          liens.push({
+            id: uid(),
+            name: `${selectedClinic.code} (${categoryType.toUpperCase()})`,
+            category: targetCategory,
+            amount: valBal,
+            offer: valProp > 0 ? valProp : null,
+            status: "Proposal Received",
+            isTarget: true,
+          });
+        }
+        renderInputs();
+      }
+
+      function syncTableToHeader() {
+        let proBalanceTotal = 0;
+        let proProposalTotal = 0;
+        let facBalanceTotal = 0;
+        let facProposalTotal = 0;
+
+        liens.forEach((l) => {
+          if (l.isTarget) {
+            if (l.category === "professional") {
+              proBalanceTotal += l.amount || 0;
+              proProposalTotal += l.offer || 0;
+            } else if (l.category === "provider") {
+              facBalanceTotal += l.amount || 0;
+              facProposalTotal += l.offer || 0;
+            }
+          }
+        });
+
+        const proBalInput = document.getElementById("ion-pro-balance");
+        const proPropInput = document.getElementById("ion-pro-proposal");
+        const facBalInput = document.getElementById("ion-fac-balance");
+        const facPropInput = document.getElementById("ion-fac-proposal");
+
+        if (proBalInput) proBalInput.value = proBalanceTotal.toFixed(2);
+        if (proPropInput) proPropInput.value = proProposalTotal.toFixed(2);
+        if (facBalInput) facBalInput.value = facBalanceTotal.toFixed(2);
+        if (facPropInput) facPropInput.value = facProposalTotal.toFixed(2);
+      }
+
+      function renderInputs() {
+        const tbody = document.getElementById("lien-rows");
+        tbody.innerHTML = "";
+
+        liens.forEach((lien, index) => {
+          const tr = document.createElement("tr");
+          tr.id = `lien-row-${index}`;
+          tr.className = "hover:bg-slate-50 transition-colors";
+          tr.innerHTML = `
+            <td class="py-2 px-2 text-center border-r border-slate-200">
+              <input type="checkbox" ${lien.isTarget ? "checked" : ""} 
+                onchange="toggleTargetLien(${index}, this.checked)"
+                title="Check to mark as target clinic/provider"
+                class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <input type="text" list="provider-options" value="${escapeHtml(lien.name)}" 
+                onchange="handleProviderInput(${index}, this.value)"
+                placeholder="Provider name..."
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <select onchange="updateLienField(${index}, 'category', this.value)"
+                class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="professional" ${lien.category === "professional" ? "selected" : ""}>PRO (Doctors)</option>
+                <option value="provider" ${lien.category === "provider" ? "selected" : ""}>FAC (Hospitals)</option>
+              </select>
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <input type="number" value="${lien.amount}" step="0.01" min="0" 
+                oninput="updateLienField(${index}, 'amount', Math.max(0, parseFloat(this.value) || 0))"
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200 bg-slate-50/50">
+              <input type="text" id="prorata-val-${index}" readonly value="$0.00" 
+                class="w-full px-2 py-1 bg-transparent border-0 text-xs font-bold text-right text-blue-700 focus:outline-none">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <input type="number" value="${lien.offer !== null && lien.offer !== undefined ? lien.offer : ""}" placeholder="0.00" step="0.01" min="0" 
+                oninput="updateOfferField(${index}, this.value)"
+                class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </td>
+            <td class="py-2 px-2 border-r border-slate-200">
+              <select onchange="updateLienField(${index}, 'status', this.value)"
+                class="w-full px-1.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusClass(lien.status)}">
+                ${STATUSES.map((st) => `<option value="${st}" ${lien.status === st ? "selected" : ""}>${st}</option>`).join("")}
+              </select>
+            </td>
+            <td class="py-2 px-2 text-center">
+              <button onclick="removeLien(${index})" aria-label="Remove provider" class="text-slate-400 hover:text-red-600 transition-colors p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 00-2-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function updateRowStyles(proRataMap) {
+        liens.forEach((lien, index) => {
+          const row = document.getElementById(`lien-row-${index}`);
+          const prorataElem = document.getElementById(`prorata-val-${index}`);
+          if (!row) return;
+
+          const targetProRata = proRataMap[lien.id] || 0;
+          if (prorataElem) {
+            prorataElem.value = formatUSD(targetProRata);
+          }
+
+          const offerVal =
+            lien.offer !== null && lien.offer !== undefined
+              ? parseFloat(lien.offer)
+              : null;
+
+          let rowClass = "hover:bg-slate-50 transition-colors";
+          if (offerVal !== null && offerVal > 0 && targetProRata > 0) {
+            const ratio = offerVal / targetProRata;
+            if (ratio >= 0.999) {
+              rowClass =
+                "bg-emerald-100/80 font-medium text-emerald-950 border-l-4 border-l-emerald-600";
+            } else if (ratio >= 0.8) {
+              rowClass =
+                "bg-amber-100/80 font-medium text-amber-950 border-l-4 border-l-amber-500";
+            }
+          } else if (lien.isTarget) {
+            rowClass = "bg-blue-50/70 font-medium border-l-4 border-l-blue-500";
+          }
+
+          row.className = rowClass;
+        });
+      }
+
+      function updateOfferField(index, val) {
+        const n = parseFloat(val);
+        liens[index].offer = val === "" || isNaN(n) ? null : Math.max(0, n);
+        syncTableToHeader();
+        calculate();
+      }
+
+      function toggleTargetLien(index, checked) {
+        liens[index].isTarget = checked;
+        syncTableToHeader();
+        calculate();
+      }
+
+      function getStatusClass(status) {
+        const m = {
+          "Accepted": "bg-emerald-50 text-emerald-700 border-emerald-300",
+          "Clinic Approved": "bg-emerald-50 text-emerald-700 border-emerald-300",
+          "Sent to Clinic": "bg-blue-50 text-blue-700 border-blue-300",
+          "Under Review": "bg-amber-50 text-amber-700 border-amber-300",
+          "Declined / Countered": "bg-red-50 text-red-700 border-red-300",
+        };
+        return m[status] || "bg-slate-50 text-slate-600 border-slate-300";
+      }
+
+      function handleProviderInput(index, val) {
+        liens[index].name = val;
+        const matched = providerDirectory.find(
+          (p) => p.name.toLowerCase() === val.trim().toLowerCase(),
+        );
+        if (matched) {
+          liens[index].category = matched.category;
+        } else if (val.trim().length > 3) {
+          providerDirectory.push({
+            name: val.trim(),
+            category: liens[index].category,
+          });
+          updateProviderDatalist();
+        }
+        syncTableToHeader();
+        calculate();
+      }
+
+      function updateLienField(index, field, val) {
+        liens[index][field] = val;
+        syncTableToHeader();
+        calculate();
+      }
+
+      function addLienRow() {
+        liens.push({
+          id: uid(),
+          name: "",
+          category: "professional",
+          amount: 0,
+          offer: null,
+          status: "Proposal Received",
+          isTarget: false,
+        });
+        renderInputs();
+        calculate();
+      }
+
+      function removeLien(index) {
+        const l = liens[index];
+        if (l && (l.name || l.amount) && !confirm(`Remove "${l.name || "this provider"}"?`)) return;
+        liens.splice(index, 1);
+        renderInputs();
+        syncTableToHeader();
+        calculate();
+      }
+
+      function formatUSD(num) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(num || 0);
+      }
+
+      // Pure math in integer cents. Statute (770 ILCS 23/10): all liens <= 40% of the
+      // settlement; each class (PRO / FAC) gets 20% with unused room reallocated;
+      // amounts remain subject to the one-third limitation.
+      function computePoolsCents(S, proC, facC) {
+        const out = { pro: 0, fac: 0, thirdCapped: false };
+        if (S <= 0) return out;
+        const third = Math.floor(S / 3);
+        const aggCap = Math.floor((S * 40) / 100);
+        const classCap = Math.floor((S * 20) / 100);
+        const cap3 = (v) => {
+          if (v > third) {
+            out.thirdCapped = true;
+            return third;
+          }
+          return v;
+        };
+        if (proC > 0 && facC === 0) out.pro = cap3(proC);
+        else if (facC > 0 && proC === 0) out.fac = cap3(facC);
+        else if (proC > 0 && facC > 0) {
+          if (proC + facC <= aggCap) {
+            out.pro = cap3(proC);
+            out.fac = cap3(facC);
+          } else {
+            let proCap = classCap;
+            let facCap = classCap;
+            if (proC < classCap) facCap += classCap - proC;
+            else if (facC < classCap) proCap += classCap - facC;
+            out.pro = cap3(Math.min(proC, proCap));
+            out.fac = cap3(Math.min(facC, facCap));
+          }
+        }
+        return out;
+      }
+
+      // Split a pool (cents) across liens pro rata; leftover cents go to the largest remainders.
+      function allocate(items, pool) {
+        const out = {};
+        const total = items.reduce((a, i) => a + i.cents, 0);
+        items.forEach((i) => (out[i.id] = 0));
+        if (total <= 0 || pool <= 0) return out;
+        const P = BigInt(pool);
+        const T = BigInt(total);
+        let assigned = 0;
+        const rems = [];
+        items.forEach((i) => {
+          const num = P * BigInt(i.cents);
+          out[i.id] = Number(num / T);
+          assigned += out[i.id];
+          rems.push({ id: i.id, r: num % T });
+        });
+        rems.sort((a, b) => (a.r === b.r ? 0 : a.r > b.r ? -1 : 1));
+        for (let k = 0, left = pool - assigned; left > 0 && k < rems.length; k++, left--) out[rems[k].id] += 1;
+        return out;
+      }
+
+      function calculate() {
+        const settlement = Math.max(0, parseFloat(document.getElementById("settlement").value) || 0);
+        const proItems = [];
+        const facItems = [];
+        liens.forEach((l) => {
+          const item = { id: l.id, cents: toCents(l.amount) };
+          if (l.category === "professional") proItems.push(item);
+          else if (l.category === "provider") facItems.push(item);
+        });
+        const proC = proItems.reduce((a, i) => a + i.cents, 0);
+        const facC = facItems.reduce((a, i) => a + i.cents, 0);
+        const pools = computePoolsCents(toCents(settlement), proC, facC);
+
+        const proRataMap = {};
+        const a = allocate(proItems, pools.pro);
+        const b = allocate(facItems, pools.fac);
+        Object.keys(a).forEach((k) => (proRataMap[k] = a[k] / 100));
+        Object.keys(b).forEach((k) => (proRataMap[k] = b[k] / 100));
+
+        const totalProBills = proC / 100;
+        const totalFacBills = facC / 100;
+        const grandTotalBills = (proC + facC) / 100;
+        const proPool = pools.pro / 100;
+        const facPool = pools.fac / 100;
+
+        document.getElementById("calculation-status").innerText =
+          `Settlement: ${formatUSD(settlement)} | Total AR: ${formatUSD(grandTotalBills)} | Total Offer Pool: ${formatUSD(proPool + facPool)}` +
+          (pools.thirdCapped ? " | One-third cap applied" : "");
+
+        updateRowStyles(proRataMap);
+        renderEmailOutput(settlement, totalProBills, totalFacBills, grandTotalBills, proPool, facPool, proRataMap);
+      }
+
+      function renderEmailOutput(
+        settlement,
+        totalProBills,
+        totalFacBills,
+        grandTotalBills,
+        proPool,
+        facPool,
+        proRataMap,
+      ) {
+        const container = document.getElementById("email-preview-container");
+        const patientName = document.getElementById("patient-name").value;
+        const doi = document.getElementById("doi").value;
+        const caseName = document.getElementById("case-name").value;
+        const code = selectedClinic.code;
+
+        let ionHeaderHTML = "";
+        if (
+          ionEnabled &&
+          document.getElementById("ion-enable-toggle").checked
+        ) {
+          const proBal =
+            parseFloat(document.getElementById("ion-pro-balance")?.value) || 0;
+          const facBal =
+            parseFloat(document.getElementById("ion-fac-balance")?.value) || 0;
+
+          const proPayments =
+            parseFloat(document.getElementById("ion-pro-payments")?.value) || 0;
+          const facPayments =
+            parseFloat(document.getElementById("ion-fac-payments")?.value) || 0;
+
+          const proAdj =
+            parseFloat(document.getElementById("ion-pro-adjustments")?.value) ||
+            0;
+          const facAdj =
+            parseFloat(document.getElementById("ion-fac-adjustments")?.value) ||
+            0;
+
+          let proProposal =
+            parseFloat(document.getElementById("ion-pro-proposal")?.value) || 0;
+          let facProposal =
+            parseFloat(document.getElementById("ion-fac-proposal")?.value) || 0;
+          const services = document.getElementById("ion-services").value;
+
+          let clinicProProrataSum = 0;
+          let clinicFacProrataSum = 0;
+          let checkedProOfferSum = 0;
+          let checkedFacOfferSum = 0;
+
+          liens.forEach((l) => {
+            if (l.isTarget) {
+              const offerVal =
+                l.offer !== null && l.offer !== undefined
+                  ? parseFloat(l.offer)
+                  : 0;
+              if (l.category === "professional") {
+                clinicProProrataSum += proRataMap[l.id] || 0;
+                checkedProOfferSum += offerVal;
+              } else if (l.category === "provider") {
+                clinicFacProrataSum += proRataMap[l.id] || 0;
+                checkedFacOfferSum += offerVal;
+              }
+            }
+          });
+
+          if (proProposal === 0 && checkedProOfferSum > 0)
+            proProposal = checkedProOfferSum;
+          if (facProposal === 0 && checkedFacOfferSum > 0)
+            facProposal = checkedFacOfferSum;
+
+          let offerPctText = "";
+
+          if (selectedClinic.type === "dual") {
+            const proPct =
+              clinicProProrataSum > 0
+                ? Math.round((proProposal / clinicProProrataSum) * 100)
+                : 0;
+            const facPct =
+              clinicFacProrataSum > 0
+                ? Math.round((facProposal / clinicFacProrataSum) * 100)
+                : 0;
+
+            if (proProposal > 0 || facProposal > 0) {
+              offerPctText = `Offer for PRO is ${proPct}% of pro rata and offer for FAC is ${facPct}% of pro rata.`;
+            }
+          } else if (selectedClinic.type === "fac") {
+            const facPct =
+              clinicFacProrataSum > 0
+                ? Math.round((facProposal / clinicFacProrataSum) * 100)
+                : 0;
+            if (facProposal > 0)
+              offerPctText = `Offer for FAC is ${facPct}% of pro rata.`;
+          } else {
+            const proPct =
+              clinicProProrataSum > 0
+                ? Math.round((proProposal / clinicProProrataSum) * 100)
+                : 0;
+            if (proProposal > 0)
+              offerPctText = `Offer is ${proPct}% of pro rata.`;
+          }
+
+          let balanceDetailsHTML = "";
+          if (selectedClinic.type === "dual") {
+            balanceDetailsHTML = `
+              <div>${code} PRO Balance: ${formatUSD(proBal)}</div>
+              <div>${code} FAC Balance: ${formatUSD(facBal)}</div>
+              <div>${code} PRO Payments: ${formatUSD(proPayments)}</div>
+              <div>${code} FAC Payments: ${formatUSD(facPayments)}</div>
+              <div>${code} PRO Adjustments: ${formatUSD(proAdj)}</div>
+              <div>${code} FAC Adjustments: ${formatUSD(facAdj)}</div>
+              <div>${code} PRO Proposal: ${formatUSD(proProposal)}</div>
+              <div>${code} FAC Proposal: ${formatUSD(facProposal)}</div>
+            `;
+          } else if (selectedClinic.type === "fac") {
+            balanceDetailsHTML = `
+              <div>${code} FAC Balance: ${formatUSD(facBal)}</div>
+              <div>${code} FAC Payments: ${formatUSD(facPayments)}</div>
+              <div>${code} FAC Adjustments: ${formatUSD(facAdj)}</div>
+              <div>${code} FAC Proposal: ${formatUSD(facProposal)}</div>
+            `;
+          } else {
+            balanceDetailsHTML = `
+              <div>${code} PRO Balance: ${formatUSD(proBal)}</div>
+              <div>${code} PRO Payments: ${formatUSD(proPayments)}</div>
+              <div>${code} PRO Adjustments: ${formatUSD(proAdj)}</div>
+              <div>${code} PRO Proposal: ${formatUSD(proProposal)}</div>
+            `;
+          }
+
+          ionHeaderHTML = `
+            <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 12px;">
+              ${patientName ? `<div><strong>Patient: ${escapeHtml(patientName)}</strong></div>` : ""}
+              ${doi ? `<div><strong>DOI: ${escapeHtml(fmtDate(doi))}</strong></div>` : ""}
+              ${caseName ? `<div><strong>Case: ${escapeHtml(caseName)}</strong></div>` : ""}
+              ${balanceDetailsHTML}
+              ${services ? `<div>${escapeHtml(services)}</div>` : ""}
+              <div style="margin-top: 4px;">
+                Settlement total: ${formatUSD(settlement)}, Outstanding Medical: ${formatUSD(grandTotalBills)}. ${offerPctText}
+              </div>
+            </div>
+          `;
+        }
+
+        const FONT = "font-family: Calibri, Arial, sans-serif; font-size: 10pt;";
+        const BLUE = "#DDEBF7";
+        const num2 = (n) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const acct = (n) => (Math.abs(n) < 0.005 ? "-" : num2(n));
+        const td = (txt, o = {}) =>
+          `<td${o.w ? ` width="${o.w}"` : ""}${o.span ? ` colspan="${o.span}"` : ""} style="${FONT} padding: 1px 4px; border: 1px solid #000; text-align: ${o.a || "left"};${o.bg ? ` background-color: ${o.bg};` : ""}${o.b ? " font-weight: bold;" : ""}">${txt}</td>`;
+        // Excel "accounting" money: "$" at the left edge, number at the right edge (two cells sharing one outer border)
+        const mny = (n, o = {}) => {
+          const st = `${FONT} padding: 1px 4px; border-top: 1px solid #000; border-bottom: 1px solid #000;${o.bg ? ` background-color: ${o.bg};` : ""}${o.b ? " font-weight: bold;" : ""}`;
+          return `<td width="18" style="${st} border-left: 1px solid #000; text-align: left;">${o.blank ? "&nbsp;" : "$"}</td><td width="72" style="${st} border-right: 1px solid #000; text-align: right;">${o.blank ? "&nbsp;" : acct(n)}</td>`;
+        };
+        const gap = `<td width="30" style="${FONT}">&nbsp;</td>`;
+        const hlColor = (it, pr) => {
+          if (!it.isTarget) return "";
+          const off = it.offer !== null && it.offer !== undefined ? it.offer : 0;
+          if (off > 0 && pr > 0) {
+            const r = off / pr;
+            if (r >= 0.999) return "#d1fae5";
+            if (r >= 0.8) return "#fef3c7";
+          }
+          return "#fff59d";
+        };
+        const side = (it) => {
+          if (!it) return td("&nbsp;") + mny(0, { bg: BLUE, blank: true }) + mny(0);
+          const pr = proRataMap[it.id] || 0, c = hlColor(it, pr), b = !!it.isTarget;
+          return td(escapeHtml(it.name) || "&nbsp;", { bg: c, b }) + mny(it.amount, { bg: c || BLUE, b }) + mny(pr, { bg: c, b });
+        };
+        const proItems = liens.filter((l) => l.category === "professional");
+        const facItems = liens.filter((l) => l.category === "provider");
+        const rowCount = Math.max(8, proItems.length, facItems.length);
+        const sumPR = (items) => items.reduce((a, it) => a + (proRataMap[it.id] || 0), 0);
+        let rowsHTML = "";
+        for (let i = 0; i < rowCount; i++) rowsHTML += `<tr>${side(proItems[i])}${gap}${side(facItems[i])}</tr>`;
+        const TBL = `cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; ${FONT}"`;
+        const summaryTableHTML = `<table ${TBL}><tbody>
+          <tr>${td("TOTAL SETTLEMENT", { w: 190 })}${td(num2(settlement), { span: 2, a: "right", bg: BLUE })}</tr>
+          <tr>${td("Amount to PRO")}${mny(proPool)}</tr>
+          <tr>${td("Amount to FAC")}${mny(facPool)}</tr></tbody></table>`;
+        container.innerHTML = `${ionHeaderHTML}${summaryTableHTML}<br>
+          <table ${TBL}><tbody>
+          <tr>${td("PRO CLINICS", { b: 1, w: 190 })}${td("AR", { b: 1, span: 2 })}${td("PRO RATA", { b: 1, span: 2 })}${gap}${td("FAC CLINICS", { b: 1, w: 190 })}${td("AR", { b: 1, span: 2 })}${td("PRO RATA", { b: 1, span: 2 })}</tr>
+          ${rowsHTML}
+          <tr>${td("TOTAL")}${mny(totalProBills, { bg: BLUE })}${mny(sumPR(proItems))}${gap}${td("TOTAL")}${mny(totalFacBills, { bg: BLUE })}${mny(sumPR(facItems))}</tr>
+          </tbody></table>`;
+      }
+
+      const CSV_HEADERS = ["Patient Name", "Case Reference", "DOI", "Facility", "Gross Settlement", "Provider Name", "Category", "AR Balance", "Offered Amount", "Target Provider", "Status", "PRO Payments", "FAC Payments", "PRO Adjustments", "FAC Adjustments", "Notes"];
+
+      function csvCell(v) {
+        let t = String(v ?? "");
+        if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; // block spreadsheet formula injection
+        return `"${t.replace(/"/g, '""')}"`;
+      }
+
+      function parseCSV(text) {
+        text = text.replace(/^\uFEFF/, "");
+        const rows = [];
+        let row = [], cell = "", inQ = false;
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i];
+          if (inQ) {
+            if (ch === '"') {
+              if (text[i + 1] === '"') { cell += '"'; i++; } else inQ = false;
+            } else cell += ch;
+          } else if (ch === '"') inQ = true;
+          else if (ch === ",") { row.push(cell); cell = ""; }
+          else if (ch === "\n" || ch === "\r") {
+            if (ch === "\r" && text[i + 1] === "\n") i++;
+            row.push(cell); cell = ""; rows.push(row); row = [];
+          } else cell += ch;
+        }
+        if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+        return rows.filter((r) => r.some((c) => c.trim() !== ""));
+      }
+
+      function readState() {
+        const val = (id) => (document.getElementById(id) ? document.getElementById(id).value : "");
+        return {
+          patient: val("patient-name").trim(),
+          doi: val("doi"),
+          name: val("case-name").trim(),
+          facility: selectedClinic.code,
+          settlement: Math.max(0, parseFloat(val("settlement")) || 0),
+          liens: JSON.parse(JSON.stringify(liens)),
+          hdr: {
+            proPayments: val("ion-pro-payments"),
+            facPayments: val("ion-fac-payments"),
+            proAdjustments: val("ion-pro-adjustments"),
+            facAdjustments: val("ion-fac-adjustments"),
+            services: val("ion-services"),
+          },
+        };
+      }
+
+      function applyState(c) {
+        const set = (id, v) => {
+          const el = document.getElementById(id);
+          if (el) el.value = v;
+        };
+        set("patient-name", c.patient || "");
+        set("doi", c.doi || "");
+        set("case-name", c.name || "");
+        set("settlement", c.settlement || 0);
+        const seen = new Set();
+        liens = (Array.isArray(c.liens) ? c.liens : []).map((l) => {
+          const id = l.id && !seen.has(l.id) ? l.id : uid();
+          seen.add(id);
+          const off = parseFloat(l.offer);
+          return {
+            id,
+            name: String(l.name || ""),
+            category: l.category === "provider" ? "provider" : "professional",
+            amount: Math.max(0, parseFloat(l.amount) || 0),
+            offer: isNaN(off) ? null : Math.max(0, off),
+            status: STATUS_MAP[l.status] || (STATUSES.includes(l.status) ? l.status : "Proposal Received"),
+            isTarget: !!l.isTarget,
+          };
+        });
+        if (c.facility && CLINICS.some((x) => x.code === c.facility)) {
+          set("facility-dropdown", c.facility);
+          handleFacilityChange(c.facility, true);
+        }
+        renderInputs();
+        syncTableToHeader();
+        const h = c.hdr || {};
+        set("ion-pro-payments", h.proPayments || "0.00");
+        set("ion-fac-payments", h.facPayments || "0.00");
+        set("ion-pro-adjustments", h.proAdjustments || "0.00");
+        set("ion-fac-adjustments", h.facAdjustments || "0.00");
+        set("ion-services", h.services || "");
+        calculate();
+      }
+
+      function exportToCSV() {
+        const st = readState();
+        if (!st.liens.length) { alert("Nothing to export: add at least one provider."); return; }
+        const rows = [CSV_HEADERS.map(csvCell).join(",")];
+        st.liens.forEach((l) => {
+          rows.push([st.patient, st.name, st.doi, st.facility, st.settlement, l.name, l.category, l.amount, l.offer || 0, l.isTarget ? "YES" : "NO", l.status,
+            st.hdr.proPayments, st.hdr.facPayments, st.hdr.proAdjustments, st.hdr.facAdjustments, st.hdr.services].map(csvCell).join(","));
+        });
+        const blob = new Blob(["\uFEFF" + rows.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${(st.name || "Lien_Case").replace(/[^a-z0-9]/gi, "_")}_ProRata.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function importFromCSV(e) {
+        const input = e.target;
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const rows = parseCSV(String(evt.target.result));
+            if (rows.length < 2) throw new Error("The file has no data rows.");
+            const idx = {};
+            rows[0].forEach((h, i) => (idx[h.trim().toLowerCase()] = i));
+            if (idx["provider name"] === undefined || idx["ar balance"] === undefined)
+              throw new Error("Unrecognized CSV format (missing Provider Name / AR Balance columns).");
+            const get = (r, name) => {
+              const i = idx[name.toLowerCase()];
+              return i === undefined ? "" : (r[i] ?? "").replace(/^'(?=[=+\-@\t\r])/, "");
+            };
+            const first = rows[1];
+            const st = {
+              patient: get(first, "Patient Name"),
+              name: get(first, "Case Reference"),
+              doi: get(first, "DOI"),
+              facility: get(first, "Facility"),
+              settlement: parseFloat(get(first, "Gross Settlement")) || 0,
+              hdr: {
+                proPayments: get(first, "PRO Payments"), facPayments: get(first, "FAC Payments"),
+                proAdjustments: get(first, "PRO Adjustments"), facAdjustments: get(first, "FAC Adjustments"),
+                services: get(first, "Notes"),
+              },
+              liens: rows.slice(1).map((r) => {
+                const o = parseFloat(get(r, "Offered Amount"));
+                return {
+                  name: get(r, "Provider Name"), category: get(r, "Category"),
+                  amount: get(r, "AR Balance"), offer: o > 0 ? o : null,
+                  isTarget: get(r, "Target Provider").toUpperCase() === "YES",
+                  status: get(r, "Status"),
+                };
+              }),
+            };
+            if (liens.length && !confirm("Importing will replace the case currently on screen. Continue?")) return;
+            currentCaseId = null;
+            applyState(st);
+            alert("CSV file successfully imported!");
+          } catch (err) {
+            alert("Import failed: " + err.message);
+          } finally {
+            input.value = "";
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function saveCurrentCase() {
+        const st = readState();
+        if (!st.name) { alert("Please enter an Attorney / Case Reference."); return; }
+        let id = currentCaseId && savedCases[currentCaseId] ? currentCaseId : null;
+        if (!id) {
+          const dup = Object.values(savedCases).find((c) => c.name === st.name && (c.patient || "") === st.patient);
+          if (dup) {
+            if (!confirm(`A saved case "${st.name}" already exists for this patient. Overwrite it?`)) return;
+            id = dup.id;
+          } else id = uid();
+        }
+        savedCases[id] = { ...st, id, updatedAt: new Date().toLocaleDateString() };
+        currentCaseId = id;
+        if (safeSave("il_saved_cases", savedCases)) {
+          renderSavedCasesList();
+          alert(`Case "${st.name}" saved!`);
+        }
+      }
+
+      function loadCase(id) {
+        const c = savedCases[id];
+        if (!c) return;
+        currentCaseId = id;
+        applyState(c);
+      }
+
+      function deleteCase(id) {
+        const c = savedCases[id];
+        if (!c) return;
+        if (confirm(`Delete "${c.name}"?`)) {
+          delete savedCases[id];
+          if (currentCaseId === id) currentCaseId = null;
+          safeSave("il_saved_cases", savedCases);
+          renderSavedCasesList();
+        }
+      }
+
+      function resetCase() {
+        if (liens.length && !confirm("Clear the case on screen? Unsaved changes will be lost.")) return;
+        ["patient-name", "doi", "case-name", "ion-services"].forEach((id) => (document.getElementById(id).value = ""));
+        document.getElementById("settlement").value = "0";
+        ["pro-payments", "fac-payments", "pro-adjustments", "fac-adjustments"].forEach((id) => (document.getElementById("ion-" + id).value = "0.00"));
+        liens = [];
+        currentCaseId = null;
+        renderInputs();
+        syncTableToHeader();
+        calculate();
+      }
+
+      function clearAllData() {
+        if (!confirm("Delete ALL saved cases and the provider directory from this browser? This cannot be undone.")) return;
+        try {
+          localStorage.removeItem("il_saved_cases");
+          localStorage.removeItem("il_provider_directory");
+        } catch (e) {}
+        savedCases = {};
+        providerDirectory = [];
+        currentCaseId = null;
+        updateProviderDatalist();
+        renderSavedCasesList();
+      }
+
+      function renderSavedCasesList() {
+        const container = document.getElementById("saved-cases-list");
+        const term = (document.getElementById("search-saved").value || "").toLowerCase();
+        container.innerHTML = "";
+        const ids = Object.keys(savedCases).filter((id) => {
+          const c = savedCases[id];
+          return (c.name || "").toLowerCase().includes(term) || (c.patient || "").toLowerCase().includes(term);
+        });
+        document.getElementById("saved-count").innerText = Object.keys(savedCases).length;
+        if (!ids.length) {
+          container.innerHTML = `<div class="py-2 text-center text-slate-400 italic">No saved cases</div>`;
+          return;
+        }
+        ids.forEach((id) => {
+          const c = savedCases[id];
+          const div = document.createElement("div");
+          div.className = "py-1.5 px-2 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition-colors rounded";
+          div.addEventListener("click", () => loadCase(id));
+          const info = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "font-semibold text-slate-800";
+          title.textContent = (c.patient ? c.patient + " - " : "") + (c.name || "");
+          const meta = document.createElement("div");
+          meta.className = "text-[10px] text-slate-400";
+          meta.textContent = `${formatUSD(c.settlement)} • ${c.updatedAt || ""}`;
+          info.append(title, meta);
+          const btn = document.createElement("button");
+          btn.className = "text-slate-300 hover:text-red-500 p-1";
+          btn.setAttribute("aria-label", "Delete saved case");
+          btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+          btn.addEventListener("click", (ev) => { ev.stopPropagation(); deleteCase(id); });
+          div.append(info, btn);
+          container.appendChild(div);
+        });
+      }
+
+      function runSelfTest() {
+        const D = (x) => Math.round(x * 100);
+        const cases = [
+          ["PRO only, over 1/3", 100000, 50000, 0, 33333.33, 0],
+          ["FAC only, under 1/3", 100000, 0, 10000, 0, 10000],
+          ["Both under 40%", 100000, 20000, 10000, 20000, 10000],
+          ["Both under 40%, PRO over 1/3", 100000, 35000, 3000, 33333.33, 3000],
+          ["Both over 20%", 100000, 30000, 30000, 20000, 20000],
+          ["PRO small, FAC large", 100000, 5000, 50000, 5000, 33333.33],
+          ["FAC small, PRO large", 100000, 38000, 5000, 33333.33, 5000],
+          ["Zero settlement", 0, 1000, 1000, 0, 0],
+        ];
+        const lines = [];
+        let fails = 0;
+        cases.forEach(([label, S, p, f, ep, ef]) => {
+          const r = computePoolsCents(D(S), D(p), D(f));
+          const ok = r.pro === D(ep) && r.fac === D(ef);
+          if (!ok) fails++;
+          lines.push(`${ok ? "PASS" : "FAIL"}  ${label}: PRO ${r.pro / 100}, FAC ${r.fac / 100}`);
+        });
+        const al = allocate([{ id: "a", cents: 10000 }, { id: "b", cents: 10000 }, { id: "c", cents: 10000 }], 10000);
+        const sum = al.a + al.b + al.c;
+        if (sum !== 10000) fails++;
+        lines.push(`${sum === 10000 ? "PASS" : "FAIL"}  Rounding: 3 equal liens sum to ${sum / 100}`);
+        console.log(lines.join("\n"));
+        alert(`${fails ? fails + " test(s) FAILED" : "All tests passed"}\n\n${lines.join("\n")}`);
+      }
+
+      async function copyTableForEmail() {
+        const container = document.getElementById("email-preview-container");
+        try {
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                "text/html": new Blob([container.innerHTML], { type: "text/html" }),
+                "text/plain": new Blob([container.innerText], { type: "text/plain" }),
+              }),
+            ]);
+          } else {
+            const range = document.createRange();
+            range.selectNode(container);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            const ok = document.execCommand("copy");
+            sel.removeAllRanges();
+            if (!ok) throw new Error("copy command rejected");
+          }
+          const btnText = document.getElementById("copy-btn-text");
+          btnText.innerText = "Copied to Clipboard!";
+          setTimeout(() => (btnText.innerText = "Copy Proposal for Email"), 2500);
+        } catch (err) {
+          alert("Copy failed. Select the proposal text manually and copy it.");
+        }
+      }
+
+      init();
+    </script>
+  <script src="/app-bridge.js"></script>
+</body>
+</html>

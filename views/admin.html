@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8"><div class="max-w-5xl mx-auto space-y-6">
+<header class="flex justify-between items-center"><h1 class="text-xl font-bold">Admin</h1><a href="/" class="text-blue-600 text-sm">Back to calculator</a></header>
+<div id="root" class="space-y-6"></div></div>
+<script>
+const J=async(u,m='GET',b)=>{const r=await fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b&&JSON.stringify(b)});if(r.status===401)location='/login.html';const d=await r.json();if(!r.ok)throw new Error(d.error);return d};
+const el=(t,c,...k)=>{const e=document.createElement(t);if(c)e.className=c;k.flat().forEach(x=>e.append(x??''));return e};
+const IN='px-2 py-1 border border-slate-300 rounded text-sm',BT='px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded',CARD='bg-white p-4 rounded-xl border border-slate-200 space-y-3';
+const inp=(ph,t='text')=>{const i=el('input',IN);i.placeholder=ph;i.type=t;return i};
+const btn=(txt,fn,c=BT)=>{const b=el('button',c,txt);b.onclick=()=>Promise.resolve(fn()).catch(e=>alert(e.message));return b};
+const table=(head,rows)=>el('table','w-full text-sm text-left',el('thead','text-xs text-slate-500',el('tr','',head.map(h=>el('th','py-1 pr-3',h)))),el('tbody','',rows.map(r=>el('tr','border-t border-slate-100',r.map(c=>el('td','py-1 pr-3 align-top',c))))));
+const root=document.getElementById('root');
+async function users(){const us=await J('/api/users');const [un,nm,pw]=[inp('username'),inp('full name'),inp('password (10+ chars)','password')];const rl=el('select',IN,el('option','','negotiator'),el('option','','admin'));
+ return el('section',CARD,el('h2','font-semibold','Users'),el('div','flex flex-wrap gap-2',un,nm,rl,pw,btn('Create user',async()=>{await J('/api/users','POST',{username:un.value,name:nm.value,role:rl.value,password:pw.value});load()})),
+ table(['User','Name','Role','Active',''],us.map(u=>[u.username,u.name,u.role,u.active?'yes':'no',el('div','flex gap-2',btn(u.active?'Deactivate':'Activate',async()=>{await J('/api/users/'+u.id,'PATCH',{active:!u.active});load()},'text-xs text-blue-600'),btn('Reset password',async()=>{const p=prompt('New password (10+ chars) for '+u.username);if(p){await J('/api/users/'+u.id,'PATCH',{password:p});alert('Updated')}},'text-xs text-blue-600'))])))}
+async function reports(){const [f,t]=[inp('from','date'),inp('to','date')],out=el('div');let rows=[];
+ const go=async()=>{rows=await J('/api/reports/summary?from='+f.value+'&to='+t.value);out.replaceChildren(table(['User','Cases','Calculations','Proposals logged','Sent to clinic','Accepted','Declined/countered','Emails copied'],rows.map(r=>[r.username,r.cases,r.calculations,r.proposals_logged,r.sent_to_clinic,r.accepted,r.declined_countered,r.email_drafts])))};
+ const csv=()=>{const h=['username','cases','calculations','proposals_logged','sent_to_clinic','accepted','declined_countered','email_drafts'];const a=el('a');a.href=URL.createObjectURL(new Blob([[h,...rows.map(r=>h.map(k=>r[k]))].map(r=>r.join(',')).join('\n')],{type:'text/csv'}));a.download='report.csv';a.click()};
+ await go();return el('section',CARD,el('h2','font-semibold','Activity report'),el('div','flex flex-wrap gap-2 items-center',f,t,btn('Run',go),btn('Download CSV',csv,'text-xs text-blue-600')),out)}
+async function templates(){const ts=await J('/api/templates');const sel=el('select',IN,ts.map(x=>el('option','',x.name)));const [nm,sb]=[inp('name'),inp('subject')];sb.className=IN+' w-full';const bd=el('textarea',IN+' w-full h-48');
+ const show=()=>{const x=ts[sel.selectedIndex];nm.value=x.name;sb.value=x.subject;bd.value=x.body};sel.onchange=show;if(ts.length)show();
+ return el('section',CARD,el('h2','font-semibold','Email templates'),el('p','text-xs text-slate-500','Placeholders: {{patient}} {{case_ref}} {{clinic}} {{doi}} {{settlement}} {{provider}} {{balance}} {{prorata}} {{offer}} {{pct}} {{sender}} {{table}}'),el('div','flex gap-2',sel,nm),sb,bd,
+ el('div','flex gap-2',btn('Save',async()=>{await J('/api/templates/'+ts[sel.selectedIndex].id,'PUT',{name:nm.value,subject:sb.value,body:bd.value});load()}),btn('Add as new',async()=>{await J('/api/templates','POST',{name:nm.value+' (copy)',subject:sb.value,body:bd.value});load()},'text-xs text-blue-600')))}
+async function audit(){const a=await J('/api/audit');return el('section',CARD,el('h2','font-semibold','Audit log (latest 100)'),table(['Time (UTC)','User','Action','Detail'],a.map(r=>[r.ts,r.username||'-',r.action,r.detail])))}
+async function load(){root.replaceChildren(await users(),await reports(),await templates(),await audit())}load();
+</script></body></html>
